@@ -113,10 +113,11 @@
             align-items: center;
         }
 
+        /* RTL: the first block added lands on the right, each new one to its left */
         .composition-surface.horizontal {
-            flex-direction: row;
+            flex-direction: row-reverse;
             flex-wrap: wrap;
-            justify-content: flex-start;
+            justify-content: flex-end;
         }
 
         .composition-surface.vertical {
