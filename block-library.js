@@ -6,13 +6,13 @@
     // Shape registry: maps a shape key to its CSS class (see block-library.css)
     // and the number of editable cells it contains.
     const shapes = {
-        'side-by-side':     { cssClass: 'block-side-by-side',    cells: 2 },
-        '2x2-3cells':       { cssClass: 'block-2x2-3cells',      cells: 3 },
-        '2x2-4cells':       { cssClass: 'block-2x2',             cells: 4 },
-        'single':           { cssClass: 'block-single',          cells: 1 },
-        'top-span-3cells':  { cssClass: 'block-top-span-3cells', cells: 3 },
-        '2x3-six':          { cssClass: 'block-2x3-six',         cells: 6 },
-        '2x3-five':         { cssClass: 'block-2x3-five',        cells: 5 }
+        'side-by-side':     { cssClass: 'block-side-by-side',    cells: 2, label: '2 cells - side by side' },
+        '2x2-3cells':       { cssClass: 'block-2x2-3cells',      cells: 3, label: '3 cells - 2x2 merged' },
+        '2x2-4cells':       { cssClass: 'block-2x2',             cells: 4, label: '4 cells - 2x2 grid' },
+        'single':           { cssClass: 'block-single',          cells: 1, label: '1 cell - single' },
+        'top-span-3cells':  { cssClass: 'block-top-span-3cells', cells: 3, label: '3 cells - top span' },
+        '2x3-six':          { cssClass: 'block-2x3-six',         cells: 6, label: '6 cells - 2x3 grid' },
+        '2x3-five':         { cssClass: 'block-2x3-five',        cells: 5, label: '5 cells - 2x2 + bottom span' }
     };
 
     const arabicLetters = [

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Blocks Compositor - محاكاة الكتابة العربية</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @font-face {
+            font-family: 'lafd';
+            src: URL('NotoKufiArabic-Regular.ttf');
+        }
+
+        @font-face {
+            font-family: 'lafd2';
+            src: URL('NotoKufiArabic-Regular2.ttf');
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        #app {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group-label {
+            font-size: 0.85em;
+            color: #666;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+
+        .control-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .control-group input[type="radio"] {
+            cursor: pointer;
+            margin: 0;
+            width: 16px;
+            height: 16px;
+        }
+
+        .control-divider {
+            width: 1px;
+            height: 24px;
+            background: #ddd;
+        }
+
+        /* Composition surface: a sequential row (or column) of blocks with
+           an "add" insertion point before, between, and after every block. */
+        .composition-surface {
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 14px;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        .composition-surface.horizontal {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .composition-surface.vertical {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .composition-item .block-card {
+            margin: 0;
+        }
+
+        .insert-point {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .composition-surface.horizontal .insert-point {
+            padding: 0 6px;
+        }
+
+        .composition-surface.vertical .insert-point {
+            padding: 6px 0;
+        }
+
+        .add-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 1.4em;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .add-btn:hover {
+            background: white;
+            color: #667eea;
+            border-style: solid;
+            transform: scale(1.1);
+        }
+
+        .add-btn.active {
+            background: white;
+            color: #667eea;
+            border-style: solid;
+        }
+
+        /* Block card / cell styles, shared with the other pages */
+        .block-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .block-title {
+            text-align: center;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .block-grid {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .block {
+            border: 3px solid #333;
+            display: grid;
+            gap: 0;
+            background: white;
+        }
+
+        .block-side-by-side,
+        .block-2x2,
+        .block-2x2-3cells,
+        .block-single,
+        .block-top-span-3cells,
+        .block-2x3-six,
+        .block-2x3-five {
+            width: 160px;
+            height: 160px;
+        }
+
+        .block-single {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .block-single .block-cell {
+            border-right: none;
+        }
+
+        .block-top-span-3cells {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .block-top-span-3cells .block-cell:nth-child(1) {
+            grid-column: 1 / 3;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-top-span-3cells .block-cell:nth-child(2) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .block-top-span-3cells .block-cell:nth-child(3) {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-six {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .block-2x3-six .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x3-six .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-six .block-cell:nth-child(3) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
+        }
+
+        .block-2x3-six .block-cell:nth-child(4) {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-six .block-cell:nth-child(5) {
+            grid-column: 2;
+            grid-row: 3;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .block-2x3-six .block-cell:nth-child(6) {
+            grid-column: 1;
+            grid-row: 3;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-five {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .block-2x3-five .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x3-five .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-five .block-cell:nth-child(3) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
+        }
+
+        .block-2x3-five .block-cell:nth-child(4) {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-five .block-cell:nth-child(5) {
+            grid-column: 1 / 3;
+            grid-row: 3;
+            border-right: none;
+        }
+
+        .block-side-by-side {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .block-side-by-side .block-cell {
+            border-bottom: none;
+        }
+
+        .block-side-by-side .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-side-by-side .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x2 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .block-2x2 .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x2 .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x2 .block-cell:nth-child(3) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
+        }
+
+        .block-2x2 .block-cell:nth-child(4) {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x2-3cells {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .block-2x2-3cells .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x2-3cells .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-cell {
+            position: relative;
+            border-right: 2px solid #333;
+            border-bottom: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #333;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .cell-input {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+            cursor: text;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .cell-input:hover {
+            background: rgba(102, 126, 234, 0.08);
+        }
+
+        .cell-input:focus {
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        .cell-number {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            font-size: 12px;
+            font-weight: normal;
+            color: #333;
+            font-family: Arial, sans-serif;
+            pointer-events: none;
+        }
+
+        .block-cell:nth-child(2n) {
+            border-right: none;
+        }
+
+        .block-2x2 .block-cell:nth-child(3) {
+            border-bottom: none;
+        }
+
+        .block-2x2-3cells .block-cell:nth-child(3) {
+            grid-column: 1 / 3;
+            border-right: none;
+        }
+
+        .block-cell:last-child {
+            border-bottom: none;
+        }
+
+        .block-cell.font-lafd .cell-input {
+            font-family: 'lafd';
+        }
+
+        .block-cell.font-lafd2 .cell-input {
+            font-family: 'lafd2';
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 10px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .reset-btn:hover {
+            background: #ee5a52;
+        }
+
+        /* Keyboard shown as a floating tooltip next to the cell currently being edited */
+        .keyboard-tooltip {
+            position: absolute;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-width: 340px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .keyboard-tooltip.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, 0);
+        }
+
+        .keyboard-tooltip::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid white;
+        }
+
+        .keyboard-tooltip-keys {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 12px;
+            direction: rtl;
+        }
+
+        .keyboard-key {
+            min-width: 38px;
+            height: 38px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: #f9f9f9;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .keyboard-key.font-lafd {
+            font-family: 'lafd';
+        }
+
+        .keyboard-key.font-lafd2 {
+            font-family: 'lafd2';
+        }
+
+        .keyboard-key:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .keyboard-key.sukun {
+            color: #ff6b6b;
+        }
+
+        .keyboard-key.sukun:hover {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        /* Block-type picker shown as a floating tooltip near the "+" that opened it */
+        .shape-picker {
+            position: absolute;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .shape-picker.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, 0);
+        }
+
+        .shape-picker::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid white;
+        }
+
+        .shape-picker-title {
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #666;
+            padding: 10px 14px 0;
+        }
+
+        .shape-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 10px 14px 14px;
+        }
+
+        .shape-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .shape-option:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+
+        .shape-option .block {
+            width: 44px;
+            height: 44px;
+            pointer-events: none;
+        }
+
+        .shape-option .block-cell {
+            min-height: 0;
+            padding: 0;
+        }
+
+        .shape-option-label {
+            font-size: 0.68em;
+            color: #666;
+            text-align: center;
+            max-width: 80px;
+        }
+
+        .empty-hint {
+            color: white;
+            opacity: 0.85;
+            font-size: 0.95em;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>🧩 Arabic Blocks Compositor</h1>
+            <p>تركيب الكتل بشكل أفقي أو عمودي (Composition séquentielle de blocs)</p>
+        </div>
+
+        <div class="controls-bar">
+            <div class="control-group">
+                <span class="control-group-label">Font:</span>
+                <label>
+                    <input type="radio" v-model="font" value="lafd"> Font 1
+                </label>
+                <label>
+                    <input type="radio" v-model="font" value="lafd2"> Font 2
+                </label>
+            </div>
+            <div class="control-divider"></div>
+            <div class="control-group">
+                <span class="control-group-label">Layout:</span>
+                <label>
+                    <input type="radio" v-model="orientation" value="horizontal"> Horizontal
+                </label>
+                <label>
+                    <input type="radio" v-model="orientation" value="vertical"> Vertical
+                </label>
+            </div>
+        </div>
+
+        <div class="composition-surface" :class="orientation">
+            <div class="insert-point">
+                <button class="add-btn" :class="{ active: pickerOpen && pickerInsertIndex === 0 }" type="button" @click="openPicker(0, $event)">+</button>
+            </div>
+            <span v-if="blocks.length === 0" class="empty-hint">Click + to add the first block</span>
+            <template v-for="(b, i) in blocks" :key="b.id">
+                <div class="composition-item">
+                    <syllable-block
+                        :title="'Block ' + (i + 1)"
+                        :shape="b.shape"
+                        v-model="b.values"
+                        :font="font"
+                        @cell-focus="onCellFocus"
+                    ></syllable-block>
+                </div>
+                <div class="insert-point">
+                    <button class="add-btn" :class="{ active: pickerOpen && pickerInsertIndex === i + 1 }" type="button" @click="openPicker(i + 1, $event)">+</button>
+                </div>
+            </template>
+        </div>
+
+        <div
+            class="shape-picker"
+            :class="{ visible: pickerOpen }"
+            :style="{ top: pickerTop + 'px', left: pickerLeft + 'px' }"
+        >
+            <div class="shape-picker-title">Choose a block type</div>
+            <div class="shape-picker-grid">
+                <button
+                    v-for="(info, key) in shapes"
+                    :key="key"
+                    class="shape-option"
+                    type="button"
+                    @click="choosePickerShape(key)"
+                >
+                    <div class="block" :class="info.cssClass">
+                        <div class="block-cell" v-for="n in info.cells" :key="n"></div>
+                    </div>
+                    <span class="shape-option-label">{{ info.label }}</span>
+                </button>
+            </div>
+        </div>
+
+        <div
+            class="keyboard-tooltip"
+            :class="{ visible: keyboardVisible }"
+            :style="{ top: keyboardTop + 'px', left: keyboardLeft + 'px' }"
+        >
+            <div class="keyboard-tooltip-keys">
+                <button
+                    v-for="l in letters"
+                    :key="l.ch"
+                    class="keyboard-key"
+                    :class="['font-' + font, { sukun: l.ch === 'ْ' }]"
+                    type="button"
+                    @mousedown.prevent="insertLetter(l.ch)"
+                >{{ l.ch }}</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="block-library.js"></script>
+    <script>
+        const { createApp } = Vue;
+        const { shapes, arabicLetters, SyllableBlock } = ArabicBlockLibrary;
+
+        const app = createApp({
+            components: {
+                'syllable-block': SyllableBlock
+            },
+            data() {
+                return {
+                    font: 'lafd',
+                    orientation: 'horizontal',
+                    letters: arabicLetters,
+                    shapes: shapes,
+                    blocks: [],
+                    nextId: 1,
+
+                    pickerOpen: false,
+                    pickerInsertIndex: null,
+                    pickerTop: 0,
+                    pickerLeft: 0,
+
+                    keyboardVisible: false,
+                    keyboardTop: 0,
+                    keyboardLeft: 0,
+                    activeEl: null
+                };
+            },
+            mounted() {
+                document.addEventListener('mousedown', this.handleDocumentMouseDown, true);
+                window.addEventListener('scroll', this.repositionKeyboard, true);
+                window.addEventListener('resize', this.repositionKeyboard);
+            },
+            methods: {
+                openPicker(index, event) {
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    this.pickerInsertIndex = index;
+                    this.pickerTop = rect.bottom + window.scrollY + 8;
+                    this.pickerLeft = rect.left + window.scrollX + rect.width / 2;
+                    this.pickerOpen = true;
+                    this.keyboardVisible = false;
+                },
+                choosePickerShape(shapeKey) {
+                    if (this.pickerInsertIndex === null) return;
+                    const info = this.shapes[shapeKey];
+                    const block = {
+                        id: this.nextId++,
+                        shape: shapeKey,
+                        values: Array(info.cells).fill('')
+                    };
+                    this.blocks.splice(this.pickerInsertIndex, 0, block);
+                    this.pickerOpen = false;
+                    this.pickerInsertIndex = null;
+                },
+                onCellFocus({ el }) {
+                    this.activeEl = el;
+                    this.keyboardVisible = true;
+                    this.pickerOpen = false;
+                    this.repositionKeyboard();
+                },
+                repositionKeyboard() {
+                    if (!this.activeEl || !this.keyboardVisible) return;
+                    const rect = this.activeEl.getBoundingClientRect();
+                    this.keyboardTop = rect.bottom + window.scrollY + 8;
+                    this.keyboardLeft = rect.left + window.scrollX + rect.width / 2;
+                },
+                handleDocumentMouseDown(e) {
+                    const insideKeyboard = e.target.closest('.keyboard-tooltip');
+                    const isCellInput = e.target.classList && e.target.classList.contains('cell-input');
+                    if (!insideKeyboard && !isCellInput) {
+                        this.keyboardVisible = false;
+                    }
+
+                    const insidePicker = e.target.closest('.shape-picker');
+                    const isAddBtn = e.target.closest('.add-btn');
+                    if (!insidePicker && !isAddBtn) {
+                        this.pickerOpen = false;
+                    }
+                },
+                insertLetter(letter) {
+                    if (!this.activeEl) return;
+                    this.activeEl.textContent = letter;
+                    this.activeEl.dispatchEvent(new Event('input', { bubbles: true }));
+                    this.activeEl.focus();
+                }
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
