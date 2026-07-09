@@ -7,6 +7,13 @@
       "runtimeArgs": ["-m", "http.server"],
       "port": 8000,
       "autoPort": true
+    },
+    {
+      "name": "web-server-preview2",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8123"],
+      "port": 8123,
+      "autoPort": true
     }
   ]
 }

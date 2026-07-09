@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Syllable Blocks v2 - محاكاة الكتابة العربية</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @font-face {
+            font-family: 'lafd';
+            src: URL('NotoKufiArabic-Regular.ttf');
+        }
+
+        @font-face {
+            font-family: 'lafd2';
+            src: URL('NotoKufiArabic-Regular2.ttf');
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        #app {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Global font switcher - controls every block, the reference grid and the keyboard at once */
+        .global-font-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        .global-font-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .global-font-toggle input[type="radio"] {
+            cursor: pointer;
+            margin: 0;
+            width: 16px;
+            height: 16px;
+        }
+
+        .blocks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .block-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .block-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .block-title {
+            text-align: center;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .block-grid {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .block {
+            border: 3px solid #333;
+            display: grid;
+            gap: 0;
+            background: white;
+        }
+
+        /* Block types - all square, same size */
+        .block-side-by-side,
+        .block-2x2,
+        .block-2x2-3cells,
+        .block-single,
+        .block-top-span-3cells,
+        .block-2x3-six,
+        .block-2x3-five {
+            width: 200px;
+            height: 200px;
+        }
+
+        /* Single cell, no dividers */
+        .block-single {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .block-single .block-cell {
+            border-right: none;
+        }
+
+        /* Full-width top cell, 2 cells split below (RTL: 1=top span, 2=bottom-right, 3=bottom-left) */
+        .block-top-span-3cells {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .block-top-span-3cells .block-cell:nth-child(1) {
+            grid-column: 1 / 3;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-top-span-3cells .block-cell:nth-child(2) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .block-top-span-3cells .block-cell:nth-child(3) {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: 2px solid #333;
+        }
+
+        /* 2 columns x 3 rows, 6 cells (RTL: right column 1/3/5 top-to-bottom, left column 2/4/6) */
+        .block-2x3-six {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .block-2x3-six .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x3-six .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-six .block-cell:nth-child(3) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
+        }
+
+        .block-2x3-six .block-cell:nth-child(4) {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-six .block-cell:nth-child(5) {
+            grid-column: 2;
+            grid-row: 3;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .block-2x3-six .block-cell:nth-child(6) {
+            grid-column: 1;
+            grid-row: 3;
+            border-right: 2px solid #333;
+        }
+
+        /* 2x2 grid on top, full-width cell spanning the bottom row (RTL numbering) */
+        .block-2x3-five {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .block-2x3-five .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x3-five .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-five .block-cell:nth-child(3) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
+        }
+
+        .block-2x3-five .block-cell:nth-child(4) {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x3-five .block-cell:nth-child(5) {
+            grid-column: 1 / 3;
+            grid-row: 3;
+            border-right: none;
+        }
+
+        /* Two cells side by side, separated by a single vertical divider */
+        .block-side-by-side {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .block-side-by-side .block-cell {
+            border-bottom: none;
+        }
+
+        /* RTL numbering: cell 1 sits in the right column, cell 2 in the left */
+        .block-side-by-side .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-side-by-side .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x2 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        /* RTL numbering: 1=top-right, 2=top-left, 3=bottom-right, 4=bottom-left */
+        .block-2x2 .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x2 .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x2 .block-cell:nth-child(3) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
+        }
+
+        .block-2x2 .block-cell:nth-child(4) {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x2-3cells {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        /* RTL numbering: 1=top-right, 2=top-left, 3=full-width bottom */
+        .block-2x2-3cells .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x2-3cells .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-cell {
+            position: relative;
+            border-right: 2px solid #333;
+            border-bottom: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 65px;
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .cell-input {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+            cursor: text;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .cell-input:hover {
+            background: rgba(102, 126, 234, 0.08);
+        }
+
+        .cell-input:focus {
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        .cell-number {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            font-size: 13px;
+            font-weight: normal;
+            color: #333;
+            font-family: Arial, sans-serif;
+            pointer-events: none;
+        }
+
+        .block-cell:nth-child(2n) {
+            border-right: none;
+        }
+
+        .block-2x2 .block-cell:nth-child(3) {
+            border-bottom: none;
+        }
+
+        .block-2x2-3cells .block-cell:nth-child(3) {
+            grid-column: 1 / 3;
+            border-right: none;
+        }
+
+        .block-cell:last-child {
+            border-bottom: none;
+        }
+
+        .block-cell.font-lafd .cell-input {
+            font-family: 'lafd';
+        }
+
+        .block-cell.font-lafd2 .cell-input {
+            font-family: 'lafd2';
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .reset-btn:hover {
+            background: #ee5a52;
+        }
+
+        .reference-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .reference-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .reference-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .reference-item {
+            text-align: center;
+        }
+
+        .reference-letter {
+            font-size: 3em;
+        }
+
+        .reference-letter.font-lafd {
+            font-family: 'lafd';
+        }
+
+        .reference-letter.font-lafd2 {
+            font-family: 'lafd2';
+        }
+
+        .reference-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .copy-item {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .copy-item:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .copy-item.copied {
+            background: #d4edda;
+        }
+
+        .copy-hint {
+            font-size: 0.8em;
+            opacity: 0;
+            transition: opacity 0.3s;
+            margin-top: 5px;
+        }
+
+        .copy-item:hover .copy-hint {
+            opacity: 1;
+        }
+
+        /* Keyboard shown as a floating tooltip next to the cell currently being edited */
+        .keyboard-tooltip {
+            position: absolute;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-width: 340px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .keyboard-tooltip.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, 0);
+        }
+
+        .keyboard-tooltip::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid white;
+        }
+
+        .keyboard-tooltip-keys {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 12px;
+            direction: rtl;
+        }
+
+        .keyboard-key {
+            min-width: 38px;
+            height: 38px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: #f9f9f9;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .keyboard-key.font-lafd {
+            font-family: 'lafd';
+        }
+
+        .keyboard-key.font-lafd2 {
+            font-family: 'lafd2';
+        }
+
+        .keyboard-key:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .keyboard-key.sukun {
+            color: #ff6b6b;
+        }
+
+        .keyboard-key.sukun:hover {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>🎯 Arabic Syllable Blocks</h1>
+            <p>محاكاة الكتابة العربية في كتل مقسمة (Simulation d'écriture arabe)</p>
+        </div>
+
+        <div class="global-font-toggle">
+            <label>
+                <input type="radio" v-model="font" value="lafd"> Font 1
+            </label>
+            <label>
+                <input type="radio" v-model="font" value="lafd2"> Font 2
+            </label>
+        </div>
+
+        <div class="blocks-container">
+            <syllable-block
+                v-for="b in blocksData"
+                :key="b.key"
+                :title="b.title"
+                :shape="b.shape"
+                v-model="b.values"
+                :font="font"
+                @cell-focus="onCellFocus"
+            ></syllable-block>
+        </div>
+
+        <div class="reference-section">
+            <h2>📚 Reference - الخيارات (Click to copy)</h2>
+            <div class="reference-grid">
+                <div
+                    v-for="l in letters"
+                    :key="l.ch"
+                    class="reference-item copy-item"
+                    @click="copyToClipboard(l.ch, l.name)"
+                >
+                    <div
+                        class="reference-letter"
+                        :class="'font-' + font"
+                        :style="{ color: l.ch === 'ْ' ? '#ff6b6b' : '#667eea' }"
+                    >{{ l.ch }}</div>
+                    <div class="reference-label">{{ l.name }} - {{ l.ch }}</div>
+                    <div class="copy-hint">📋</div>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="keyboard-tooltip"
+            :class="{ visible: keyboardVisible }"
+            :style="{ top: keyboardTop + 'px', left: keyboardLeft + 'px' }"
+        >
+            <div class="keyboard-tooltip-keys">
+                <button
+                    v-for="l in letters"
+                    :key="l.ch"
+                    class="keyboard-key"
+                    :class="['font-' + font, { sukun: l.ch === 'ْ' }]"
+                    type="button"
+                    @mousedown.prevent="insertLetter(l.ch)"
+                >{{ l.ch }}</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="block-library.js"></script>
+    <script>
+        const { createApp } = Vue;
+        const { arabicLetters, SyllableBlock } = ArabicBlockLibrary;
+
+        const app = createApp({
+            components: {
+                'syllable-block': SyllableBlock
+            },
+            data() {
+                return {
+                    font: 'lafd',
+                    letters: arabicLetters,
+                    blocksData: [
+                        { key: 'b1', title: 'Block ①', shape: 'side-by-side',    values: ['', ''] },
+                        { key: 'b2', title: 'Block ②', shape: '2x2-3cells',      values: ['', '', ''] },
+                        { key: 'b3', title: 'Block ③', shape: '2x2-4cells',      values: ['', '', '', ''] },
+                        { key: 'b4', title: 'Block ④', shape: 'single',          values: [''] },
+                        { key: 'b5', title: 'Block ⑤', shape: 'top-span-3cells', values: ['', '', ''] },
+                        { key: 'b6', title: 'Block ⑥', shape: '2x3-six',         values: ['', '', '', '', '', ''] },
+                        { key: 'b7', title: 'Block ⑦', shape: '2x3-five',       values: ['', '', '', '', ''] }
+                    ],
+                    keyboardVisible: false,
+                    keyboardTop: 0,
+                    keyboardLeft: 0,
+                    activeEl: null
+                };
+            },
+            mounted() {
+                document.addEventListener('mousedown', this.handleDocumentMouseDown, true);
+                window.addEventListener('scroll', this.repositionKeyboard, true);
+                window.addEventListener('resize', this.repositionKeyboard);
+            },
+            methods: {
+                onCellFocus({ el }) {
+                    this.activeEl = el;
+                    this.keyboardVisible = true;
+                    this.repositionKeyboard();
+                },
+                repositionKeyboard() {
+                    if (!this.activeEl || !this.keyboardVisible) return;
+                    const rect = this.activeEl.getBoundingClientRect();
+                    this.keyboardTop = rect.bottom + window.scrollY + 8;
+                    this.keyboardLeft = rect.left + window.scrollX + rect.width / 2;
+                },
+                handleDocumentMouseDown(e) {
+                    const insideKeyboard = e.target.closest('.keyboard-tooltip');
+                    const isCellInput = e.target.classList && e.target.classList.contains('cell-input');
+                    if (!insideKeyboard && !isCellInput) {
+                        this.keyboardVisible = false;
+                    }
+                },
+                insertLetter(letter) {
+                    if (!this.activeEl) return;
+                    this.activeEl.textContent = letter;
+                    this.activeEl.dispatchEvent(new Event('input', { bubbles: true }));
+                    this.activeEl.focus();
+                },
+                copyToClipboard(letter, name) {
+                    navigator.clipboard.writeText(letter).then(() => {
+                        this.showCopyNotification(name);
+                    }).catch(() => {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = letter;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        this.showCopyNotification(name);
+                    });
+                },
+                showCopyNotification(name) {
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: #4caf50;
+                        color: white;
+                        padding: 15px 25px;
+                        border-radius: 6px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        z-index: 9999;
+                        font-family: Arial, sans-serif;
+                        animation: slideIn 0.3s ease;
+                    `;
+                    notification.textContent = `✓ Copied: ${name}`;
+                    document.body.appendChild(notification);
+
+                    setTimeout(() => {
+                        notification.style.animation = 'slideOut 0.3s ease';
+                        setTimeout(() => document.body.removeChild(notification), 300);
+                    }, 2000);
+                }
+            }
+        });
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
