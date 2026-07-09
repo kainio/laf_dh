@@ -716,6 +716,7 @@
             <template v-for="(b, i) in blocks" :key="b.id">
                 <div class="composition-item">
                     <syllable-block
+                        ref="blockRefs"
                         :title="'Block ' + (i + 1)"
                         :shape="b.shape"
                         v-model="b.values"
@@ -835,9 +836,14 @@
                         shape: shapeKey,
                         values: Array(info.cells).fill('')
                     };
-                    this.blocks.splice(this.pickerInsertIndex, 0, block);
+                    const insertIndex = this.pickerInsertIndex;
+                    this.blocks.splice(insertIndex, 0, block);
                     this.pickerOpen = false;
                     this.pickerInsertIndex = null;
+                    this.$nextTick(() => {
+                        const newBlock = this.$refs.blockRefs && this.$refs.blockRefs[insertIndex];
+                        if (newBlock) newBlock.focusCell(0);
+                    });
                 },
                 onCellFocus({ el }) {
                     this.activeEl = el;
