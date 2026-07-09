@@ -173,24 +173,57 @@
             border-style: solid;
         }
 
+        /* Read-only preview stack: same blocks, no card/title/reset, just the shapes joined together */
+        .preview-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 24px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        .preview-panel h2 {
+            text-align: center;
+            color: #333;
+            font-size: 1.05em;
+            margin-bottom: 14px;
+        }
+
+        .preview-surface {
+            display: flex;
+        }
+
+        .preview-surface.horizontal {
+            flex-direction: row-reverse;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .preview-surface.vertical {
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
         /* Block card / cell styles, shared with the other pages */
         .block-card {
             background: white;
-            border-radius: 12px;
-            padding: 30px;
+            border-radius: 10px;
+            padding: 14px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         .block-title {
             text-align: center;
-            font-size: 1.4em;
-            margin-bottom: 20px;
+            font-size: 1em;
+            margin-bottom: 10px;
             font-weight: bold;
             color: #333;
         }
 
         .block-grid {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: center;
         }
@@ -209,8 +242,8 @@
         .block-top-span-3cells,
         .block-2x3-six,
         .block-2x3-five {
-            width: 160px;
-            height: 160px;
+            width: 90px;
+            height: 90px;
         }
 
         .block-single {
@@ -397,11 +430,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 50px;
-            font-size: 30px;
+            min-height: 0;
+            font-size: 18px;
             font-weight: bold;
             color: #333;
-            padding: 8px;
+            padding: 4px;
             text-align: center;
         }
 
@@ -427,9 +460,9 @@
 
         .cell-number {
             position: absolute;
-            top: 4px;
-            right: 6px;
-            font-size: 12px;
+            top: 2px;
+            right: 4px;
+            font-size: 9px;
             font-weight: normal;
             color: #333;
             font-family: Arial, sans-serif;
@@ -453,26 +486,28 @@
             border-bottom: none;
         }
 
+        .block-cell.font-lafd,
         .block-cell.font-lafd .cell-input {
             font-family: 'lafd';
         }
 
+        .block-cell.font-lafd2,
         .block-cell.font-lafd2 .cell-input {
             font-family: 'lafd2';
         }
 
         .reset-btn {
             width: 100%;
-            padding: 10px;
+            padding: 6px;
+            font-size: 0.8em;
             background: #ff6b6b;
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 0.9em;
             cursor: pointer;
             font-weight: bold;
             transition: background 0.3s;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .reset-btn:hover {
@@ -692,6 +727,19 @@
             </template>
         </div>
 
+        <div class="preview-panel" v-if="blocks.length">
+            <h2>👁️ Preview</h2>
+            <div class="preview-surface" :class="orientation">
+                <syllable-block-preview
+                    v-for="b in blocks"
+                    :key="'preview-' + b.id"
+                    :shape="b.shape"
+                    :model-value="b.values"
+                    :font="font"
+                ></syllable-block-preview>
+            </div>
+        </div>
+
         <div
             class="shape-picker"
             :class="{ visible: pickerOpen }"
@@ -736,11 +784,12 @@
     <script src="block-library.js"></script>
     <script>
         const { createApp } = Vue;
-        const { shapes, arabicLetters, SyllableBlock } = ArabicBlockLibrary;
+        const { shapes, arabicLetters, SyllableBlock, SyllableBlockPreview } = ArabicBlockLibrary;
 
         const app = createApp({
             components: {
-                'syllable-block': SyllableBlock
+                'syllable-block': SyllableBlock,
+                'syllable-block-preview': SyllableBlockPreview
             },
             data() {
                 return {

@@ -154,5 +154,30 @@
         `
     };
 
-    global.ArabicBlockLibrary = { shapes, arabicLetters, SyllableBlock };
+    // Bare, read-only rendering of a block's shape and letters - no title, no
+    // reset button, nothing editable. Meant for compact previews/stacks.
+    const SyllableBlockPreview = {
+        props: {
+            shape: { type: String, required: true },
+            modelValue: { type: Array, required: true },
+            font: { type: String, default: 'lafd' }
+        },
+        computed: {
+            shapeInfo() {
+                return shapes[this.shape] || shapes['single'];
+            }
+        },
+        template: `
+            <div class="block" :class="shapeInfo.cssClass">
+                <div
+                    v-for="(v, i) in modelValue"
+                    :key="i"
+                    class="block-cell"
+                    :class="'font-' + font"
+                >{{ v }}</div>
+            </div>
+        `
+    };
+
+    global.ArabicBlockLibrary = { shapes, arabicLetters, SyllableBlock, SyllableBlockPreview };
 })(window);
