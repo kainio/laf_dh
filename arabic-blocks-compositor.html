@@ -731,6 +731,87 @@
             font-size: 0.95em;
             padding: 10px;
         }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 16px 10px;
+            }
+
+            .header h1 {
+                font-size: 1.6em;
+            }
+
+            .header p {
+                font-size: 0.85em;
+            }
+
+            .controls-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                max-width: 100%;
+                padding: 14px;
+            }
+
+            .control-group {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .control-divider {
+                width: 100%;
+                height: 1px;
+            }
+
+            .composition-surface {
+                padding: 16px;
+            }
+
+            .builder-preview-layout.side-by-side {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .builder-preview-layout.side-by-side .preview-panel {
+                margin-top: 0;
+            }
+
+            .shape-picker,
+            .keyboard-tooltip {
+                max-width: min(300px, 92vw);
+            }
+
+            .shape-picker-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 420px) {
+            .block-side-by-side,
+            .block-2x2,
+            .block-2x2-3cells,
+            .block-single,
+            .block-top-span-3cells,
+            .block-2x3-six,
+            .block-2x3-five {
+                width: 72px;
+                height: 72px;
+            }
+
+            .block-cell {
+                font-size: 15px;
+            }
+
+            .shape-picker-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .keyboard-key {
+                min-width: 34px;
+                height: 34px;
+                font-size: 1.05em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -886,27 +967,47 @@
                     keyboardVisible: false,
                     keyboardTop: 0,
                     keyboardLeft: 0,
-                    activeEl: null
+                    activeEl: null,
+
+                    viewportWidth: window.innerWidth
                 };
             },
             mounted() {
                 document.addEventListener('mousedown', this.handleDocumentMouseDown, true);
                 window.addEventListener('scroll', this.repositionKeyboard, true);
-                window.addEventListener('resize', this.repositionKeyboard);
+                window.addEventListener('resize', this.handleWindowResize);
             },
             methods: {
+                handleWindowResize() {
+                    this.viewportWidth = window.innerWidth;
+                    this.repositionKeyboard();
+                },
+                // Mirrors the block-size breakpoints in CSS so "Auto" cell font sizing
+                // shrinks along with the blocks themselves on narrow screens.
+                maxCellFontSize() {
+                    if (this.viewportWidth <= 420) return MAX_CELL_FONT_SIZE * 0.75;
+                    if (this.viewportWidth <= 700) return MAX_CELL_FONT_SIZE * 0.875;
+                    return MAX_CELL_FONT_SIZE;
+                },
                 fontSizeFor(shapeKey) {
                     if (this.fontSizeMode !== 'auto') return null;
                     const cells = (this.shapes[shapeKey] || this.shapes['single']).cells;
-                    if (cells === 1) return MAX_CELL_FONT_SIZE;
-                    if (cells === 5 || cells === 6) return MAX_CELL_FONT_SIZE / 3;
-                    return MAX_CELL_FONT_SIZE / 2;
+                    const max = this.maxCellFontSize();
+                    if (cells === 1) return max;
+                    if (cells === 5 || cells === 6) return max / 3;
+                    return max / 2;
+                },
+                clampHorizontal(rawLeft, halfWidth) {
+                    const margin = 8;
+                    const min = window.scrollX + halfWidth + margin;
+                    const max = window.scrollX + window.innerWidth - halfWidth - margin;
+                    return Math.min(Math.max(rawLeft, min), max);
                 },
                 openPicker(index, event) {
                     const rect = event.currentTarget.getBoundingClientRect();
                     this.pickerInsertIndex = index;
                     this.pickerTop = rect.bottom + window.scrollY + 8;
-                    this.pickerLeft = rect.left + window.scrollX + rect.width / 2;
+                    this.pickerLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, 150);
                     this.pickerOpen = true;
                     this.keyboardVisible = false;
                 },
@@ -942,7 +1043,7 @@
                     if (!this.activeEl || !this.keyboardVisible) return;
                     const rect = this.activeEl.getBoundingClientRect();
                     this.keyboardTop = rect.bottom + window.scrollY + 8;
-                    this.keyboardLeft = rect.left + window.scrollX + rect.width / 2;
+                    this.keyboardLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, 170);
                 },
                 handleDocumentMouseDown(e) {
                     const insideKeyboard = e.target.closest('.keyboard-tooltip');
