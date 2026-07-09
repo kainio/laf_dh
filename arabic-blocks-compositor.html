@@ -760,6 +760,16 @@
                     <input type="radio" v-model="orientation" value="vertical"> Vertical
                 </label>
             </div>
+            <div class="control-divider"></div>
+            <div class="control-group">
+                <span class="control-group-label">Cell font size:</span>
+                <label>
+                    <input type="radio" v-model="fontSizeMode" value="default"> Default
+                </label>
+                <label>
+                    <input type="radio" v-model="fontSizeMode" value="auto"> Auto (fit to cell)
+                </label>
+            </div>
         </div>
 
         <div class="builder-preview-layout" :class="{ 'side-by-side': orientation === 'vertical' }">
@@ -777,6 +787,7 @@
                             :shape="b.shape"
                             v-model="b.values"
                             :font="font"
+                            :font-size="fontSizeFor(b.shape)"
                             @cell-focus="onCellFocus"
                         ></syllable-block>
                     </div>
@@ -795,6 +806,7 @@
                         :shape="b.shape"
                         :model-value="b.values"
                         :font="font"
+                        :font-size="fontSizeFor(b.shape)"
                     ></syllable-block-preview>
                 </div>
             </div>
@@ -846,6 +858,11 @@
         const { createApp } = Vue;
         const { shapes, arabicLetters, SyllableBlock, SyllableBlockPreview } = ArabicBlockLibrary;
 
+        // Max font size a single-cell block can take. Blocks that split their
+        // cell area in two (2/3/4-cell shapes) or three (5/6-cell shapes) get a
+        // proportionally smaller size so the letters keep fitting their cell.
+        const MAX_CELL_FONT_SIZE = 48;
+
         const app = createApp({
             components: {
                 'syllable-block': SyllableBlock,
@@ -855,6 +872,7 @@
                 return {
                     font: 'lafd',
                     orientation: 'horizontal',
+                    fontSizeMode: 'default',
                     letters: arabicLetters,
                     shapes: shapes,
                     blocks: [],
@@ -877,6 +895,13 @@
                 window.addEventListener('resize', this.repositionKeyboard);
             },
             methods: {
+                fontSizeFor(shapeKey) {
+                    if (this.fontSizeMode !== 'auto') return null;
+                    const cells = (this.shapes[shapeKey] || this.shapes['single']).cells;
+                    if (cells === 1) return MAX_CELL_FONT_SIZE;
+                    if (cells === 5 || cells === 6) return MAX_CELL_FONT_SIZE / 3;
+                    return MAX_CELL_FONT_SIZE / 2;
+                },
                 openPicker(index, event) {
                     const rect = event.currentTarget.getBoundingClientRect();
                     this.pickerInsertIndex = index;

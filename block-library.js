@@ -64,12 +64,19 @@
             title: { type: String, default: '' },
             shape: { type: String, required: true },
             modelValue: { type: Array, required: true },
-            font: { type: String, default: 'lafd' }
+            font: { type: String, default: 'lafd' },
+            // Optional per-cell font size override (number = px, or any CSS size string).
+            // Leave unset to keep the caller's default CSS font-size.
+            fontSize: { type: [Number, String], default: null }
         },
         emits: ['update:modelValue', 'cell-focus'],
         computed: {
             shapeInfo() {
                 return shapes[this.shape] || shapes['single'];
+            },
+            cellFontStyle() {
+                if (this.fontSize === null) return {};
+                return { fontSize: typeof this.fontSize === 'number' ? this.fontSize + 'px' : this.fontSize };
             }
         },
         mounted() {
@@ -142,6 +149,7 @@
                                 contenteditable="true"
                                 spellcheck="false"
                                 ref="cellInputs"
+                                :style="cellFontStyle"
                                 @focus="onFocus($event, i)"
                                 @input="onInput($event, i)"
                                 @keydown="onKeydown($event, i)"
@@ -160,11 +168,16 @@
         props: {
             shape: { type: String, required: true },
             modelValue: { type: Array, required: true },
-            font: { type: String, default: 'lafd' }
+            font: { type: String, default: 'lafd' },
+            fontSize: { type: [Number, String], default: null }
         },
         computed: {
             shapeInfo() {
                 return shapes[this.shape] || shapes['single'];
+            },
+            cellFontStyle() {
+                if (this.fontSize === null) return {};
+                return { fontSize: typeof this.fontSize === 'number' ? this.fontSize + 'px' : this.fontSize };
             }
         },
         template: `
@@ -174,6 +187,7 @@
                     :key="i"
                     class="block-cell"
                     :class="'font-' + font"
+                    :style="cellFontStyle"
                 >{{ v }}</div>
             </div>
         `
