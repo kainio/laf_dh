@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Syllable Blocks - محاكاة الكتابة العربية</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @font-face {
+            font-family: 'lafd';
+            src: URL('NotoKufiArabic-Regular.ttf');
+        }
+
+        @font-face {
+            font-family: 'lafd2';
+            src: URL('NotoKufiArabic-Regular2.ttf');
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        #app {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .blocks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .block-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .block-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .block-title {
+            text-align: center;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .block-grid {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .block {
+            border: 3px solid #333;
+            display: grid;
+            gap: 0;
+            background: white;
+        }
+
+        /* Block types - all square, same size */
+        .block-side-by-side,
+        .block-2x2,
+        .block-2x1,
+        .block-2x2-3cells,
+        .block-1x3 {
+            width: 200px;
+            height: 200px;
+        }
+
+        /* Two cells side by side, separated by a single vertical divider */
+        .block-side-by-side {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .block-side-by-side .block-cell {
+            border-bottom: none;
+        }
+
+        /* RTL numbering: cell 1 sits in the right column, cell 2 in the left */
+        .block-side-by-side .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-side-by-side .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x2 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        /* RTL numbering: 1=top-right, 2=top-left, 3=bottom-right, 4=bottom-left */
+        .block-2x2 .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x2 .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x2 .block-cell:nth-child(3) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
+        }
+
+        .block-2x2 .block-cell:nth-child(4) {
+            grid-column: 1;
+            grid-row: 2;
+            border-right: 2px solid #333;
+        }
+
+        .block-2x1 {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .block-2x2-3cells {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        /* RTL numbering: 1=top-right, 2=top-left, 3=full-width bottom */
+        .block-2x2-3cells .block-cell:nth-child(1) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
+        }
+
+        .block-2x2-3cells .block-cell:nth-child(2) {
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 2px solid #333;
+        }
+
+        .block-1x3 {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .block-cell {
+            position: relative;
+            border-right: 2px solid #333;
+            border-bottom: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 65px;
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .cell-number {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            font-size: 13px;
+            font-weight: normal;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+
+        .block-cell:nth-child(2n) {
+            border-right: none;
+        }
+
+        .block-2x2 .block-cell:nth-child(3) {
+            border-bottom: none;
+        }
+
+        .block-2x2-3cells .block-cell:nth-child(3) {
+            grid-column: 1 / 3;
+            border-right: none;
+        }
+
+        .block-2x1 .block-cell {
+            border-right: none;
+        }
+
+        .block-1x3 .block-cell {
+            border-right: none;
+        }
+
+        .block-cell:last-child {
+            border-bottom: none;
+        }
+
+        .block-cell.font-lafd {
+            font-family: 'lafd';
+        }
+
+        .block-cell.font-lafd2 {
+            font-family: 'lafd2';
+        }
+
+        .inputs-group {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-label {
+            font-size: 0.9em;
+            color: #666;
+            min-width: 30px;
+            font-weight: bold;
+        }
+
+        .input-row input {
+            flex: 1;
+            min-width: 50px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            direction: rtl;
+            text-align: right;
+            font-family: Arial, sans-serif;
+        }
+
+        .input-row input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .font-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+        }
+
+        .font-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .font-toggle input[type="radio"] {
+            cursor: pointer;
+            margin: 0;
+            width: 16px;
+            height: 16px;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .reset-btn:hover {
+            background: #ee5a52;
+        }
+
+        .reference-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .reference-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .reference-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .reference-item {
+            text-align: center;
+        }
+
+        .reference-letter {
+            font-size: 3em;
+            font-family: 'lafd';
+        }
+
+        .reference-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .copy-item {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .copy-item:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .copy-item.copied {
+            background: #d4edda;
+        }
+
+        .copy-hint {
+            font-size: 0.8em;
+            opacity: 0;
+            transition: opacity 0.3s;
+            margin-top: 5px;
+        }
+
+        .copy-item:hover .copy-hint {
+            opacity: 1;
+        }
+
+        .virtual-keyboard {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
+            transform: translateY(100%);
+            transition: transform 0.25s ease;
+            z-index: 1000;
+            max-height: 45vh;
+            overflow-y: auto;
+        }
+
+        .virtual-keyboard.visible {
+            transform: translateY(0);
+        }
+
+        .virtual-keyboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            direction: rtl;
+        }
+
+        .keyboard-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            padding: 0 6px;
+        }
+
+        .virtual-keyboard-keys {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 14px;
+            direction: rtl;
+        }
+
+        .keyboard-key {
+            min-width: 48px;
+            height: 48px;
+            font-size: 1.5em;
+            font-family: 'lafd';
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .keyboard-key:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .keyboard-key.sukun {
+            color: #ff6b6b;
+        }
+
+        .keyboard-key.sukun:hover {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>🎯 Arabic Syllable Blocks</h1>
+            <p>محاكاة الكتابة العربية في كتل مقسمة (Simulation d'écriture arabe)</p>
+        </div>
+
+        <div class="blocks-container">
+            <!-- Block 1: side by side (가) -->
+            <block-side-by-side
+                title="Block ①"
+                :initial-values="['', '']"
+                @values-changed="updateBlock"
+            ></block-side-by-side>
+
+            <!-- Block 2: 1x2 (고) -->
+            <block-1x2
+                title="Block ②"
+                :initial-values="['', '']"
+                @values-changed="updateBlock"
+            ></block-1x2>
+
+            <!-- Block 3: 2x2 with 3 cells (김) -->
+            <block-2x2-3cells
+                title="Block ③"
+                :initial-values="['', '', '']"
+                @values-changed="updateBlock"
+            ></block-2x2-3cells>
+
+            <!-- Block 4: 1x3 (곰) -->
+            <block-1x3
+                title="Block ④"
+                :initial-values="['', '', '']"
+                @values-changed="updateBlock"
+            ></block-1x3>
+
+            <!-- Block 5: 2x2 (같) -->
+            <block-2x2-4cells
+                title="Block ⑤"
+                :initial-values="['', '', '', '']"
+                @values-changed="updateBlock"
+            ></block-2x2-4cells>
+        </div>
+
+        <div class="reference-section">
+            <h2>📚 Reference - الخيارات (Click to copy)</h2>
+            <div class="reference-grid">
+                <div
+                    v-for="l in letters"
+                    :key="l.ch"
+                    class="reference-item copy-item"
+                    @click="copyToClipboard(l.ch, l.name)"
+                >
+                    <div class="reference-letter" :style="{ color: l.ch === 'ْ' ? '#ff6b6b' : '#667eea' }">{{ l.ch }}</div>
+                    <div class="reference-label">{{ l.name }} - {{ l.ch }}</div>
+                    <div class="copy-hint">📋</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="virtual-keyboard" :class="{ visible: keyboardVisible }">
+            <div class="virtual-keyboard-header">
+                <span>⌨️ Arabic Keyboard - لوحة المفاتيح</span>
+                <button class="keyboard-close" @click="keyboardVisible = false">✕</button>
+            </div>
+            <div class="virtual-keyboard-keys">
+                <button
+                    v-for="l in letters"
+                    :key="l.ch"
+                    class="keyboard-key"
+                    :class="{ sukun: l.ch === 'ْ' }"
+                    type="button"
+                    @mousedown.prevent="insertLetter(l.ch)"
+                >{{ l.ch }}</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        // Component: Block side by side (2 cells, vertical slice / horizontal arrangement)
+        const BlockSideBySide = {
+            props: {
+                title: String,
+                initialValues: {
+                    type: Array,
+                    default: () => ['', '']
+                }
+            },
+            emits: ['values-changed'],
+            data() {
+                return {
+                    values: [...this.initialValues],
+                    fontType: 'lafd'
+                };
+            },
+            methods: {
+                updateValue(index, value) {
+                    this.values[index] = value;
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                },
+                reset() {
+                    this.values = ['', ''];
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                }
+            },
+            template: `
+                <div class="block-card">
+                    <div class="block-title">{{ title }}</div>
+                    <div class="block-grid">
+                        <div class="block block-side-by-side">
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">1</span>{{ values[0] }}</div>
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">2</span>{{ values[1] }}</div>
+                        </div>
+                    </div>
+                    <div class="inputs-group">
+                        <div class="font-toggle">
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd"> Font 1
+                            </label>
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd2"> Font 2
+                            </label>
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">①</span>
+                            <input type="text" v-model="values[0]" @input="updateValue(0, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">②</span>
+                            <input type="text" v-model="values[1]" @input="updateValue(1, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <button class="reset-btn" @click="reset">Reset</button>
+                    </div>
+                </div>
+            `
+        };
+
+        // Component: Block 1x2 (2 cells vertical)
+        const Block1x2 = {
+            props: {
+                title: String,
+                initialValues: {
+                    type: Array,
+                    default: () => ['', '']
+                }
+            },
+            emits: ['values-changed'],
+            data() {
+                return {
+                    values: [...this.initialValues],
+                    fontType: 'lafd'
+                };
+            },
+            methods: {
+                updateValue(index, value) {
+                    this.values[index] = value;
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                },
+                reset() {
+                    this.values = ['', ''];
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                }
+            },
+            template: `
+                <div class="block-card">
+                    <div class="block-title">{{ title }}</div>
+                    <div class="block-grid">
+                        <div class="block block-2x1">
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">1</span>{{ values[0] }}</div>
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">2</span>{{ values[1] }}</div>
+                        </div>
+                    </div>
+                    <div class="inputs-group">
+                        <div class="font-toggle">
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd"> Font 1
+                            </label>
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd2"> Font 2
+                            </label>
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">①</span>
+                            <input type="text" v-model="values[0]" @input="updateValue(0, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">②</span>
+                            <input type="text" v-model="values[1]" @input="updateValue(1, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <button class="reset-btn" @click="reset">Reset</button>
+                    </div>
+                </div>
+            `
+        };
+
+        // Component: Block 2x2 with 3 cells
+        const Block2x2_3cells = {
+            props: {
+                title: String,
+                initialValues: {
+                    type: Array,
+                    default: () => ['', '', '']
+                }
+            },
+            emits: ['values-changed'],
+            data() {
+                return {
+                    values: [...this.initialValues],
+                    fontType: 'lafd'
+                };
+            },
+            methods: {
+                updateValue(index, value) {
+                    this.values[index] = value;
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                },
+                reset() {
+                    this.values = ['', '', ''];
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                }
+            },
+            template: `
+                <div class="block-card">
+                    <div class="block-title">{{ title }}</div>
+                    <div class="block-grid">
+                        <div class="block block-2x2-3cells">
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">1</span>{{ values[0] }}</div>
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">2</span>{{ values[1] }}</div>
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">3</span>{{ values[2] }}</div>
+                        </div>
+                    </div>
+                    <div class="inputs-group">
+                        <div class="font-toggle">
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd"> Font 1
+                            </label>
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd2"> Font 2
+                            </label>
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">①</span>
+                            <input type="text" v-model="values[0]" @input="updateValue(0, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">②</span>
+                            <input type="text" v-model="values[1]" @input="updateValue(1, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">③</span>
+                            <input type="text" v-model="values[2]" @input="updateValue(2, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <button class="reset-btn" @click="reset">Reset</button>
+                    </div>
+                </div>
+            `
+        };
+
+        // Component: Block 2x2 with 4 cells
+        const Block2x2_4cells = {
+            props: {
+                title: String,
+                initialValues: {
+                    type: Array,
+                    default: () => ['', '', '', '']
+                }
+            },
+            emits: ['values-changed'],
+            data() {
+                return {
+                    values: [...this.initialValues],
+                    fontType: 'lafd'
+                };
+            },
+            methods: {
+                updateValue(index, value) {
+                    this.values[index] = value;
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                },
+                reset() {
+                    this.values = ['', '', '', ''];
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                }
+            },
+            template: `
+                <div class="block-card">
+                    <div class="block-title">{{ title }}</div>
+                    <div class="block-grid">
+                        <div class="block block-2x2">
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">1</span>{{ values[0] }}</div>
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">2</span>{{ values[1] }}</div>
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">3</span>{{ values[2] }}</div>
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">4</span>{{ values[3] }}</div>
+                        </div>
+                    </div>
+                    <div class="inputs-group">
+                        <div class="font-toggle">
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd"> Font 1
+                            </label>
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd2"> Font 2
+                            </label>
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">①</span>
+                            <input type="text" v-model="values[0]" @input="updateValue(0, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">②</span>
+                            <input type="text" v-model="values[1]" @input="updateValue(1, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">③</span>
+                            <input type="text" v-model="values[2]" @input="updateValue(2, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">④</span>
+                            <input type="text" v-model="values[3]" @input="updateValue(3, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <button class="reset-btn" @click="reset">Reset</button>
+                    </div>
+                </div>
+            `
+        };
+
+        // Component: Block 1x3
+        const Block1x3 = {
+            props: {
+                title: String,
+                initialValues: {
+                    type: Array,
+                    default: () => ['', '', '']
+                }
+            },
+            emits: ['values-changed'],
+            data() {
+                return {
+                    values: [...this.initialValues],
+                    fontType: 'lafd'
+                };
+            },
+            methods: {
+                updateValue(index, value) {
+                    this.values[index] = value;
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                },
+                reset() {
+                    this.values = ['', '', ''];
+                    this.$emit('values-changed', {
+                        title: this.title,
+                        values: this.values,
+                        font: this.fontType
+                    });
+                }
+            },
+            template: `
+                <div class="block-card">
+                    <div class="block-title">{{ title }}</div>
+                    <div class="block-grid">
+                        <div class="block block-1x3">
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">1</span>{{ values[0] }}</div>
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">2</span>{{ values[1] }}</div>
+                            <div class="block-cell" :class="'font-' + fontType"><span class="cell-number">3</span>{{ values[2] }}</div>
+                        </div>
+                    </div>
+                    <div class="inputs-group">
+                        <div class="font-toggle">
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd"> Font 1
+                            </label>
+                            <label>
+                                <input type="radio" v-model="fontType" value="lafd2"> Font 2
+                            </label>
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">①</span>
+                            <input type="text" v-model="values[0]" @input="updateValue(0, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">②</span>
+                            <input type="text" v-model="values[1]" @input="updateValue(1, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <div class="input-row">
+                            <span class="input-label">③</span>
+                            <input type="text" v-model="values[2]" @input="updateValue(2, $event.target.value)" placeholder="Letter" maxlength="1">
+                        </div>
+                        <button class="reset-btn" @click="reset">Reset</button>
+                    </div>
+                </div>
+            `
+        };
+
+        // Main App
+        const app = createApp({
+            components: {
+                'block-side-by-side': BlockSideBySide,
+                'block-1x2': Block1x2,
+                'block-2x2-3cells': Block2x2_3cells,
+                'block-1x3': Block1x3,
+                'block-2x2-4cells': Block2x2_4cells
+            },
+            data() {
+                return {
+                    keyboardVisible: false,
+                    activeInput: null,
+                    letters: [
+                        { ch: 'ا', name: 'Alef' },
+                        { ch: 'ب', name: 'Ba' },
+                        { ch: 'ت', name: 'Ta' },
+                        { ch: 'ث', name: 'Tha' },
+                        { ch: 'ج', name: 'Jim' },
+                        { ch: 'ح', name: 'Ha' },
+                        { ch: 'خ', name: 'Kha' },
+                        { ch: 'د', name: 'Dal' },
+                        { ch: 'ذ', name: 'Dhal' },
+                        { ch: 'ر', name: 'Ra' },
+                        { ch: 'ز', name: 'Za' },
+                        { ch: 'س', name: 'Sin' },
+                        { ch: 'ش', name: 'Shin' },
+                        { ch: 'ص', name: 'Sad' },
+                        { ch: 'ض', name: 'Dad' },
+                        { ch: 'ط', name: 'Tah' },
+                        { ch: 'ظ', name: 'Zah' },
+                        { ch: 'ع', name: 'Ain' },
+                        { ch: 'غ', name: 'Ghain' },
+                        { ch: 'ف', name: 'Fa' },
+                        { ch: 'ق', name: 'Qaf' },
+                        { ch: 'ك', name: 'Kaf' },
+                        { ch: 'ل', name: 'Lam' },
+                        { ch: 'م', name: 'Mim' },
+                        { ch: 'ن', name: 'Nun' },
+                        { ch: 'ه', name: 'Ha' },
+                        { ch: 'و', name: 'Waw' },
+                        { ch: 'ي', name: 'Ya' },
+                        { ch: 'ْ', name: 'Sukun' }
+                    ]
+                };
+            },
+            mounted() {
+                document.addEventListener('focusin', this.handleFocusIn);
+                document.addEventListener('mousedown', this.handleDocumentMouseDown, true);
+            },
+            methods: {
+                updateBlock(data) {
+                    console.log('Block updated:', data);
+                },
+                handleFocusIn(e) {
+                    if (e.target.matches('.input-row input[type="text"]')) {
+                        this.activeInput = e.target;
+                        this.keyboardVisible = true;
+                    }
+                },
+                handleDocumentMouseDown(e) {
+                    const insideKeyboard = e.target.closest('.virtual-keyboard');
+                    const isBlockInput = e.target.matches('.input-row input[type="text"]');
+                    if (!insideKeyboard && !isBlockInput) {
+                        this.keyboardVisible = false;
+                    }
+                },
+                insertLetter(letter) {
+                    if (!this.activeInput) return;
+                    this.activeInput.value = letter;
+                    this.activeInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    this.activeInput.focus();
+                },
+                copyToClipboard(letter, name) {
+                    navigator.clipboard.writeText(letter).then(() => {
+                        // Visual feedback
+                        const event = new Event('copy');
+                        const elem = event.target;
+
+                        // Show toast notification
+                        this.showCopyNotification(name);
+                    }).catch(() => {
+                        // Fallback for older browsers
+                        const textarea = document.createElement('textarea');
+                        textarea.value = letter;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        this.showCopyNotification(name);
+                    });
+                },
+                showCopyNotification(name) {
+                    // Create and show a temporary toast notification
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: #4caf50;
+                        color: white;
+                        padding: 15px 25px;
+                        border-radius: 6px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        z-index: 9999;
+                        font-family: Arial, sans-serif;
+                        animation: slideIn 0.3s ease;
+                    `;
+                    notification.textContent = `✓ Copied: ${name}`;
+                    document.body.appendChild(notification);
+
+                    setTimeout(() => {
+                        notification.style.animation = 'slideOut 0.3s ease';
+                        setTimeout(() => document.body.removeChild(notification), 300);
+                    }, 2000);
+                }
+            }
+        });
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
