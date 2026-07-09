@@ -205,6 +205,30 @@
             border-style: solid;
         }
 
+        /* Builder + preview: stacked by default, side by side in vertical layout
+           (stacking two vertical columns underneath one another would waste width) */
+        .builder-preview-layout {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .builder-preview-layout.side-by-side {
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 24px;
+        }
+
+        .builder-preview-layout.side-by-side .composition-surface {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .builder-preview-layout.side-by-side .preview-panel {
+            flex: 1;
+            min-width: 0;
+            margin-top: 0;
+        }
+
         /* Read-only preview stack: same blocks, no card/title/reset, just the shapes joined together */
         .preview-panel {
             background: rgba(255, 255, 255, 0.95);
@@ -738,39 +762,41 @@
             </div>
         </div>
 
-        <div class="composition-surface" :class="orientation">
-            <div class="insert-point">
-                <button class="add-btn" :class="{ active: pickerOpen && pickerInsertIndex === 0 }" type="button" @click="openPicker(0, $event)">+</button>
-            </div>
-            <span v-if="blocks.length === 0" class="empty-hint">Click + to add the first block</span>
-            <template v-for="(b, i) in blocks" :key="b.id">
-                <div class="composition-item">
-                    <button class="remove-btn" type="button" title="Delete block" @click="removeBlock(i)">✕</button>
-                    <syllable-block
-                        ref="blockRefs"
-                        :title="'Block ' + (i + 1)"
-                        :shape="b.shape"
-                        v-model="b.values"
-                        :font="font"
-                        @cell-focus="onCellFocus"
-                    ></syllable-block>
-                </div>
+        <div class="builder-preview-layout" :class="{ 'side-by-side': orientation === 'vertical' }">
+            <div class="composition-surface" :class="orientation">
                 <div class="insert-point">
-                    <button class="add-btn" :class="{ active: pickerOpen && pickerInsertIndex === i + 1 }" type="button" @click="openPicker(i + 1, $event)">+</button>
+                    <button class="add-btn" :class="{ active: pickerOpen && pickerInsertIndex === 0 }" type="button" @click="openPicker(0, $event)">+</button>
                 </div>
-            </template>
-        </div>
+                <span v-if="blocks.length === 0" class="empty-hint">Click + to add the first block</span>
+                <template v-for="(b, i) in blocks" :key="b.id">
+                    <div class="composition-item">
+                        <button class="remove-btn" type="button" title="Delete block" @click="removeBlock(i)">✕</button>
+                        <syllable-block
+                            ref="blockRefs"
+                            :title="'Block ' + (i + 1)"
+                            :shape="b.shape"
+                            v-model="b.values"
+                            :font="font"
+                            @cell-focus="onCellFocus"
+                        ></syllable-block>
+                    </div>
+                    <div class="insert-point">
+                        <button class="add-btn" :class="{ active: pickerOpen && pickerInsertIndex === i + 1 }" type="button" @click="openPicker(i + 1, $event)">+</button>
+                    </div>
+                </template>
+            </div>
 
-        <div class="preview-panel" v-if="blocks.length">
-            <h2>👁️ Preview</h2>
-            <div class="preview-surface" :class="orientation">
-                <syllable-block-preview
-                    v-for="b in blocks"
-                    :key="'preview-' + b.id"
-                    :shape="b.shape"
-                    :model-value="b.values"
-                    :font="font"
-                ></syllable-block-preview>
+            <div class="preview-panel" v-if="blocks.length">
+                <h2>👁️ Preview</h2>
+                <div class="preview-surface" :class="orientation">
+                    <syllable-block-preview
+                        v-for="b in blocks"
+                        :key="'preview-' + b.id"
+                        :shape="b.shape"
+                        :model-value="b.values"
+                        :font="font"
+                    ></syllable-block-preview>
+                </div>
             </div>
         </div>
 
