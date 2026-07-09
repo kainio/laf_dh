@@ -113,11 +113,13 @@
             align-items: center;
         }
 
-        /* RTL: the first block added lands on the right, each new one to its left */
+        /* RTL: the first block added lands on the right, each new one to its left.
+           With row-reverse the main-axis start is the right edge, so flex-start
+           packs blocks against the right instead of leaving them stranded on the left. */
         .composition-surface.horizontal {
             flex-direction: row-reverse;
             flex-wrap: wrap;
-            justify-content: flex-end;
+            justify-content: flex-start;
         }
 
         .composition-surface.vertical {
