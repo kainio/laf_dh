@@ -127,8 +127,38 @@
             align-items: center;
         }
 
+        .composition-item {
+            position: relative;
+        }
+
         .composition-item .block-card {
             margin: 0;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: none;
+            background: #ff6b6b;
+            color: white;
+            font-size: 0.85em;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            transition: all 0.15s ease;
+            z-index: 1;
+        }
+
+        .remove-btn:hover {
+            background: #ee5a52;
+            transform: scale(1.15);
         }
 
         .insert-point {
@@ -715,6 +745,7 @@
             <span v-if="blocks.length === 0" class="empty-hint">Click + to add the first block</span>
             <template v-for="(b, i) in blocks" :key="b.id">
                 <div class="composition-item">
+                    <button class="remove-btn" type="button" title="Delete block" @click="removeBlock(i)">✕</button>
                     <syllable-block
                         ref="blockRefs"
                         :title="'Block ' + (i + 1)"
@@ -844,6 +875,11 @@
                         const newBlock = this.$refs.blockRefs && this.$refs.blockRefs[insertIndex];
                         if (newBlock) newBlock.focusCell(0);
                     });
+                },
+                removeBlock(index) {
+                    this.blocks.splice(index, 1);
+                    this.keyboardVisible = false;
+                    this.activeEl = null;
                 },
                 onCellFocus({ el }) {
                     this.activeEl = el;
