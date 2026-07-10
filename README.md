@@ -13,7 +13,7 @@ Experiments in decomposing Arabic script into fixed-shape "syllable blocks" (ins
 | [arabic-blocks.html](arabic-blocks.html) | Original demo: all 7 block shapes shown at once, editable single-letter cells, per-block font toggle, floating virtual Arabic keyboard. Self-contained (does not use `block-library.js`). |
 | [arabic-blocks-v2.html](arabic-blocks-v2.html) | Same fixed 7-shape display as v1, refactored to use the shared `SyllableBlock` component from `block-library.js`, with a single global font toggle instead of per-block. |
 | [hanarabiya-compositor.html](hanarabiya-compositor.html) | "Hanarabiya" (Han, as in Hangeul, + arabiya) — interactive builder for composing an arbitrary sequence of Arabic syllable blocks (RTL). See **Compositor features** below. |
-| [romarabiya-compositor.html](romarabiya-compositor.html) | "Romarabiya" — the same composition workflow, but for Arabic-to-Latin transliteration (LTR). Cells hold Latin strings (e.g. `th`, `kh`, `sh`) instead of single Arabic glyphs. |
+| [romarabiya-compositor.html](romarabiya-compositor.html) | "Romarabiya" (Roman + Arabiya — Arabic written in the Roman/Latin alphabet) — the same composition workflow, but for Arabic-to-Latin transliteration (LTR). Cells hold Latin strings (e.g. `th`, `kh`, `sh`) instead of single Arabic glyphs. |
 
 ## Shared library
 
