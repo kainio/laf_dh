@@ -61,3 +61,7 @@ Then open `hanarabiya-compositor.html` or `romarabiya-compositor.html` in a brow
 ## Sources
 
 - Korean blocks illustration: [Source](https://learnkorean24.com/learn-the-korean-alphabet/)
+
+## License
+
+[MIT](LICENSE) © Soufiane El Kassib
