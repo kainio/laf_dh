@@ -613,7 +613,10 @@
             content: '';
             position: absolute;
             top: -8px;
-            left: 50%;
+            /* Points at the actual anchor cell, not just the tooltip's own
+               center - the tooltip itself gets clamped to stay on-screen
+               near viewport edges, so its center often isn't the anchor. */
+            left: var(--arrow-left, 50%);
             transform: translateX(-50%);
             border-left: 8px solid transparent;
             border-right: 8px solid transparent;
@@ -672,7 +675,9 @@
             content: '';
             position: absolute;
             top: -8px;
-            left: 50%;
+            /* Points at the actual anchor "+" button, not just the tooltip's
+               own center - see .keyboard-tooltip::before for why. */
+            left: var(--arrow-left, 50%);
             transform: translateX(-50%);
             border-left: 8px solid transparent;
             border-right: 8px solid transparent;
@@ -915,7 +920,7 @@
             ref="shapePickerEl"
             class="shape-picker"
             :class="{ visible: pickerOpen }"
-            :style="{ top: pickerTop + 'px', left: pickerLeft + 'px' }"
+            :style="{ top: pickerTop + 'px', left: pickerLeft + 'px', '--arrow-left': pickerArrowLeft + 'px' }"
         >
             <div class="shape-picker-title">Choose a block type</div>
             <div class="shape-picker-grid">
@@ -938,7 +943,7 @@
             ref="keyboardTooltipEl"
             class="keyboard-tooltip"
             :class="{ visible: keyboardVisible }"
-            :style="{ top: keyboardTop + 'px', left: keyboardLeft + 'px' }"
+            :style="{ top: keyboardTop + 'px', left: keyboardLeft + 'px', '--arrow-left': keyboardArrowLeft + 'px' }"
         >
             <div class="keyboard-tooltip-keys">
                 <button
@@ -1165,10 +1170,12 @@
                     pickerInsertIndex: null,
                     pickerTop: 0,
                     pickerLeft: 0,
+                    pickerArrowLeft: 0,
 
                     keyboardVisible: false,
                     keyboardTop: 0,
                     keyboardLeft: 0,
+                    keyboardArrowLeft: 0,
                     activeEl: null,
                     activeBlock: null,
                     activeIndex: null,
@@ -1243,6 +1250,17 @@
                     const max = window.scrollX + window.innerWidth - halfWidth - margin;
                     return Math.min(Math.max(rawLeft, min), max);
                 },
+                // The tooltip's own left/top only center it over its anchor when
+                // there's room; near a viewport edge clampHorizontal shifts it so
+                // the box stays on-screen. The arrow must counter-shift by the same
+                // amount (clamped within the box) so it still points at the anchor.
+                arrowOffset(rawCenter, clampedCenter, halfWidth) {
+                    const arrowMargin = 14;
+                    const width = halfWidth * 2;
+                    if (width <= arrowMargin * 2) return width / 2;
+                    const offset = rawCenter - clampedCenter + halfWidth;
+                    return Math.min(Math.max(offset, arrowMargin), width - arrowMargin);
+                },
                 openPicker(index, event) {
                     this.pickerAnchorEl = event.currentTarget;
                     this.pickerInsertIndex = index;
@@ -1262,7 +1280,9 @@
                     // current viewport's max-width/column-count CSS) instead of guessing.
                     const el = this.$refs.shapePickerEl;
                     const halfWidth = (el && el.offsetWidth ? el.offsetWidth : 260) / 2;
-                    this.pickerLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, halfWidth);
+                    const rawCenter = rect.left + window.scrollX + rect.width / 2;
+                    this.pickerLeft = this.clampHorizontal(rawCenter, halfWidth);
+                    this.pickerArrowLeft = this.arrowOffset(rawCenter, this.pickerLeft, halfWidth);
                 },
                 choosePickerShape(shapeKey) {
                     if (this.pickerInsertIndex === null) return;
@@ -1302,7 +1322,9 @@
                     this.keyboardTop = rect.bottom + window.scrollY + 8;
                     const el = this.$refs.keyboardTooltipEl;
                     const halfWidth = (el && el.offsetWidth ? el.offsetWidth : 320) / 2;
-                    this.keyboardLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, halfWidth);
+                    const rawCenter = rect.left + window.scrollX + rect.width / 2;
+                    this.keyboardLeft = this.clampHorizontal(rawCenter, halfWidth);
+                    this.keyboardArrowLeft = this.arrowOffset(rawCenter, this.keyboardLeft, halfWidth);
                 },
                 handleDocumentMouseDown(e) {
                     const insideKeyboard = e.target.closest('.keyboard-tooltip');
