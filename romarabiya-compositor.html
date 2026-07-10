@@ -1,25 +1,15 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arabic Blocks Compositor - محاكاة الكتابة العربية</title>
+    <title>Romarabiya - Arabic to Latin Transliteration Compositor</title>
     <style type="text/css">
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        @font-face {
-            font-family: 'lafd';
-            src: URL('NotoKufiArabic-Regular.ttf');
-        }
-
-        @font-face {
-            font-family: 'lafd2';
-            src: URL('NotoKufiArabic-Regular2.ttf');
         }
 
         body {
@@ -113,11 +103,9 @@
             align-items: center;
         }
 
-        /* RTL: the first block added lands on the right, each new one to its left.
-           With row-reverse the main-axis start is the right edge, so flex-start
-           packs blocks against the right instead of leaving them stranded on the left. */
+        /* LTR: the first block added lands on the left, each new one to its right. */
         .composition-surface.horizontal {
-            flex-direction: row-reverse;
+            flex-direction: row;
             flex-wrap: wrap;
             justify-content: flex-start;
         }
@@ -138,7 +126,7 @@
         .remove-btn {
             position: absolute;
             top: -8px;
-            left: -8px;
+            right: -8px;
             width: 22px;
             height: 22px;
             border-radius: 50%;
@@ -250,7 +238,7 @@
         }
 
         .preview-surface.horizontal {
-            flex-direction: row-reverse;
+            flex-direction: row;
             flex-wrap: wrap;
             justify-content: center;
             gap: 6px;
@@ -323,16 +311,16 @@
         }
 
         .block-top-span-3cells .block-cell:nth-child(2) {
-            grid-column: 2;
+            grid-column: 1;
             grid-row: 2;
-            border-right: none;
+            border-right: 2px solid #333;
             border-bottom: none;
         }
 
         .block-top-span-3cells .block-cell:nth-child(3) {
-            grid-column: 1;
+            grid-column: 2;
             grid-row: 2;
-            border-right: 2px solid #333;
+            border-right: none;
         }
 
         .block-2x3-six {
@@ -341,40 +329,40 @@
         }
 
         .block-2x3-six .block-cell:nth-child(1) {
-            grid-column: 2;
+            grid-column: 1;
             grid-row: 1;
-            border-right: none;
+            border-right: 2px solid #333;
         }
 
         .block-2x3-six .block-cell:nth-child(2) {
-            grid-column: 1;
+            grid-column: 2;
             grid-row: 1;
-            border-right: 2px solid #333;
+            border-right: none;
         }
 
         .block-2x3-six .block-cell:nth-child(3) {
-            grid-column: 2;
-            grid-row: 2;
-            border-right: none;
-        }
-
-        .block-2x3-six .block-cell:nth-child(4) {
             grid-column: 1;
             grid-row: 2;
             border-right: 2px solid #333;
         }
 
-        .block-2x3-six .block-cell:nth-child(5) {
+        .block-2x3-six .block-cell:nth-child(4) {
             grid-column: 2;
-            grid-row: 3;
+            grid-row: 2;
             border-right: none;
+        }
+
+        .block-2x3-six .block-cell:nth-child(5) {
+            grid-column: 1;
+            grid-row: 3;
+            border-right: 2px solid #333;
             border-bottom: none;
         }
 
         .block-2x3-six .block-cell:nth-child(6) {
-            grid-column: 1;
+            grid-column: 2;
             grid-row: 3;
-            border-right: 2px solid #333;
+            border-right: none;
         }
 
         .block-2x3-five {
@@ -383,27 +371,27 @@
         }
 
         .block-2x3-five .block-cell:nth-child(1) {
-            grid-column: 2;
+            grid-column: 1;
             grid-row: 1;
-            border-right: none;
+            border-right: 2px solid #333;
         }
 
         .block-2x3-five .block-cell:nth-child(2) {
-            grid-column: 1;
-            grid-row: 1;
-            border-right: 2px solid #333;
-        }
-
-        .block-2x3-five .block-cell:nth-child(3) {
             grid-column: 2;
-            grid-row: 2;
+            grid-row: 1;
             border-right: none;
         }
 
-        .block-2x3-five .block-cell:nth-child(4) {
+        .block-2x3-five .block-cell:nth-child(3) {
             grid-column: 1;
             grid-row: 2;
             border-right: 2px solid #333;
+        }
+
+        .block-2x3-five .block-cell:nth-child(4) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
         }
 
         .block-2x3-five .block-cell:nth-child(5) {
@@ -422,15 +410,15 @@
         }
 
         .block-side-by-side .block-cell:nth-child(1) {
-            grid-column: 2;
-            grid-row: 1;
-            border-right: none;
-        }
-
-        .block-side-by-side .block-cell:nth-child(2) {
             grid-column: 1;
             grid-row: 1;
             border-right: 2px solid #333;
+        }
+
+        .block-side-by-side .block-cell:nth-child(2) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
         }
 
         .block-2x2 {
@@ -439,27 +427,27 @@
         }
 
         .block-2x2 .block-cell:nth-child(1) {
-            grid-column: 2;
+            grid-column: 1;
             grid-row: 1;
-            border-right: none;
+            border-right: 2px solid #333;
         }
 
         .block-2x2 .block-cell:nth-child(2) {
-            grid-column: 1;
-            grid-row: 1;
-            border-right: 2px solid #333;
-        }
-
-        .block-2x2 .block-cell:nth-child(3) {
             grid-column: 2;
-            grid-row: 2;
+            grid-row: 1;
             border-right: none;
         }
 
-        .block-2x2 .block-cell:nth-child(4) {
+        .block-2x2 .block-cell:nth-child(3) {
             grid-column: 1;
             grid-row: 2;
             border-right: 2px solid #333;
+        }
+
+        .block-2x2 .block-cell:nth-child(4) {
+            grid-column: 2;
+            grid-row: 2;
+            border-right: none;
         }
 
         .block-2x2-3cells {
@@ -468,15 +456,15 @@
         }
 
         .block-2x2-3cells .block-cell:nth-child(1) {
-            grid-column: 2;
-            grid-row: 1;
-            border-right: none;
-        }
-
-        .block-2x2-3cells .block-cell:nth-child(2) {
             grid-column: 1;
             grid-row: 1;
             border-right: 2px solid #333;
+        }
+
+        .block-2x2-3cells .block-cell:nth-child(2) {
+            grid-column: 2;
+            grid-row: 1;
+            border-right: none;
         }
 
         .block-cell {
@@ -487,7 +475,7 @@
             align-items: center;
             justify-content: center;
             min-height: 0;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: #333;
             padding: 4px;
@@ -504,6 +492,7 @@
             cursor: text;
             border-radius: 6px;
             transition: background 0.2s ease;
+            white-space: nowrap;
         }
 
         .cell-input:hover {
@@ -517,7 +506,7 @@
         .cell-number {
             position: absolute;
             top: 2px;
-            right: 4px;
+            left: 4px;
             font-size: 9px;
             font-weight: normal;
             color: #333;
@@ -540,16 +529,6 @@
 
         .block-cell:last-child {
             border-bottom: none;
-        }
-
-        .block-cell.font-lafd,
-        .block-cell.font-lafd .cell-input {
-            font-family: 'lafd';
-        }
-
-        .block-cell.font-lafd2,
-        .block-cell.font-lafd2 .cell-input {
-            font-family: 'lafd2';
         }
 
         .reset-btn {
@@ -602,7 +581,7 @@
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
-            max-width: 340px;
+            max-width: min(360px, 94vw);
             opacity: 0;
             pointer-events: none;
             transform: translate(-50%, 4px);
@@ -631,13 +610,14 @@
             flex-wrap: wrap;
             gap: 6px;
             padding: 12px;
-            direction: rtl;
+            direction: ltr;
         }
 
         .keyboard-key {
             min-width: 38px;
             height: 38px;
-            font-size: 1.2em;
+            padding: 0 6px;
+            font-size: 1.05em;
             border: 2px solid #ddd;
             border-radius: 6px;
             background: #f9f9f9;
@@ -646,28 +626,10 @@
             transition: all 0.15s ease;
         }
 
-        .keyboard-key.font-lafd {
-            font-family: 'lafd';
-        }
-
-        .keyboard-key.font-lafd2 {
-            font-family: 'lafd2';
-        }
-
         .keyboard-key:hover {
             background: #667eea;
             color: white;
             border-color: #667eea;
-        }
-
-        .keyboard-key.sukun {
-            color: #ff6b6b;
-        }
-
-        .keyboard-key.sukun:hover {
-            background: #ff6b6b;
-            color: white;
-            border-color: #ff6b6b;
         }
 
         /* Block-type picker shown as a floating tooltip near the "+" that opened it */
@@ -677,6 +639,7 @@
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
+            max-width: min(320px, 94vw);
             opacity: 0;
             pointer-events: none;
             transform: translate(-50%, 4px);
@@ -801,11 +764,6 @@
                 margin-top: 0;
             }
 
-            .shape-picker,
-            .keyboard-tooltip {
-                max-width: min(300px, 92vw);
-            }
-
             .shape-picker-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
@@ -824,7 +782,7 @@
             }
 
             .block-cell {
-                font-size: 15px;
+                font-size: 13px;
             }
 
             .shape-picker-grid {
@@ -834,7 +792,7 @@
             .keyboard-key {
                 min-width: 34px;
                 height: 34px;
-                font-size: 1.05em;
+                font-size: 0.95em;
             }
         }
     </style>
@@ -842,21 +800,11 @@
 <body>
     <div id="app">
         <div class="header">
-            <h1>🧩 Arabic Blocks Compositor</h1>
-            <p>تركيب الكتل بشكل أفقي أو عمودي (Composition séquentielle de blocs)</p>
+            <h1>🔤 Romarabiya</h1>
+            <p>Arabic to Latin transliteration block compositor</p>
         </div>
 
         <div class="controls-bar">
-            <div class="control-group">
-                <span class="control-group-label">Font:</span>
-                <label>
-                    <input type="radio" v-model="font" value="lafd"> Font 1
-                </label>
-                <label>
-                    <input type="radio" v-model="font" value="lafd2"> Font 2
-                </label>
-            </div>
-            <div class="control-divider"></div>
             <div class="control-group">
                 <span class="control-group-label">Layout:</span>
                 <label>
@@ -911,16 +859,15 @@
                 <template v-for="(b, i) in blocks" :key="b.id">
                     <div class="composition-item">
                         <button class="remove-btn" type="button" title="Delete block" @click="removeBlock(i)">✕</button>
-                        <syllable-block
+                        <romarabiya-block
                             ref="blockRefs"
                             :title="'Block ' + (i + 1)"
                             :shape="b.shape"
                             v-model="b.values"
-                            :font="font"
                             :font-size="fontSizeFor(b.shape)"
                             :disable-native-keyboard="disableNativeKeyboard"
                             @cell-focus="onCellFocus"
-                        ></syllable-block>
+                        ></romarabiya-block>
                     </div>
                     <div class="insert-point">
                         <button class="add-btn" :class="{ active: pickerOpen && pickerInsertIndex === i + 1 }" type="button" @click="openPicker(i + 1, $event)">+</button>
@@ -931,19 +878,19 @@
             <div class="preview-panel" v-if="blocks.length">
                 <h2>👁️ Preview</h2>
                 <div class="preview-surface" :class="[orientation, { 'no-borders': !showBorders }]">
-                    <syllable-block-preview
+                    <romarabiya-block-preview
                         v-for="b in blocks"
                         :key="'preview-' + b.id"
                         :shape="b.shape"
                         :model-value="b.values"
-                        :font="font"
                         :font-size="fontSizeFor(b.shape)"
-                    ></syllable-block-preview>
+                    ></romarabiya-block-preview>
                 </div>
             </div>
         </div>
 
         <div
+            ref="shapePickerEl"
             class="shape-picker"
             :class="{ visible: pickerOpen }"
             :style="{ top: pickerTop + 'px', left: pickerLeft + 'px' }"
@@ -966,6 +913,7 @@
         </div>
 
         <div
+            ref="keyboardTooltipEl"
             class="keyboard-tooltip"
             :class="{ visible: keyboardVisible }"
             :style="{ top: keyboardTop + 'px', left: keyboardLeft + 'px' }"
@@ -975,8 +923,8 @@
                     v-for="l in letters"
                     :key="l.ch"
                     class="keyboard-key"
-                    :class="['font-' + font, { sukun: l.ch === 'ْ' }]"
                     type="button"
+                    :title="l.name"
                     @mousedown.prevent="insertLetter(l.ch)"
                 >{{ l.ch }}</button>
             </div>
@@ -987,26 +935,199 @@
     <script src="block-library.js"></script>
     <script>
         const { createApp } = Vue;
-        const { shapes, arabicLetters, SyllableBlock, SyllableBlockPreview } = ArabicBlockLibrary;
+        const { shapes } = ArabicBlockLibrary;
+
+        // Latin transliteration keyboard, mapped 1:1 to the Arabic alphabet
+        // (in the same order as arabicLetters in block-library.js), plus two
+        // dialectal-only letters (G, V) that have no standard Arabic equivalent.
+        const romanLetters = [
+            { ch: 'a', name: 'Alef' },
+            { ch: 'ä', name: 'Hamza' },
+            { ch: 'b', name: 'Ba' },
+            { ch: 't', name: 'Ta' },
+            { ch: 'th', name: 'Tha' },
+            { ch: 'j', name: 'Jim' },
+            { ch: 'ḥ', name: 'Ha (ĥ/ḥ)' },
+            { ch: 'kh', name: 'Kha' },
+            { ch: 'd', name: 'Dal' },
+            { ch: 'dh', name: 'Dhal' },
+            { ch: 'r', name: 'Ra' },
+            { ch: 'z', name: 'Za' },
+            { ch: 's', name: 'Sin' },
+            { ch: 'sh', name: 'Shin' },
+            { ch: 'ṣ', name: 'Sad' },
+            { ch: 'ḍ', name: 'Dad' },
+            { ch: 'ṭ', name: 'Tah' },
+            { ch: 'ṭh', name: 'Zah' },
+            { ch: 'â', name: 'Ain' },
+            { ch: 'gh', name: 'Ghain' },
+            { ch: 'f', name: 'Fa' },
+            { ch: 'q', name: 'Qaf' },
+            { ch: 'k', name: 'Kaf' },
+            { ch: 'l', name: 'Lam' },
+            { ch: 'm', name: 'Mim' },
+            { ch: 'n', name: 'Nun' },
+            { ch: 'h', name: 'Ha' },
+            { ch: 'w', name: 'Waw' },
+            { ch: 'y', name: 'Ya' },
+            { ch: 'g', name: 'Gaf (dialectal)' },
+            { ch: 'v', name: 'Veh (dialectal)' },
+            { ch: 'i', name: 'I (vowel)' },
+            { ch: 'o', name: 'O (vowel)' },
+            { ch: 'e', name: 'E (vowel)' },
+            { ch: 'u', name: 'U (vowel)' }
+        ];
+
+        function placeCaretAtEnd(el) {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
+        // Same shape/cell layout as SyllableBlock, but cells hold multi-character
+        // Latin transliterations (Th, Kh, Sh, ...) instead of a single Arabic
+        // glyph, so there is no "keep only the last character" truncation here.
+        const RomarabiyaBlock = {
+            props: {
+                title: { type: String, default: '' },
+                shape: { type: String, required: true },
+                modelValue: { type: Array, required: true },
+                fontSize: { type: [Number, String], default: null },
+                disableNativeKeyboard: { type: Boolean, default: false }
+            },
+            emits: ['update:modelValue', 'cell-focus'],
+            computed: {
+                shapeInfo() {
+                    return shapes[this.shape] || shapes['single'];
+                },
+                cellFontStyle() {
+                    if (this.fontSize === null) return {};
+                    return { fontSize: typeof this.fontSize === 'number' ? this.fontSize + 'px' : this.fontSize };
+                }
+            },
+            mounted() {
+                this.syncDom();
+            },
+            methods: {
+                syncDom() {
+                    const inputs = this.$refs.cellInputs || [];
+                    inputs.forEach((el, i) => {
+                        el.textContent = this.modelValue[i] || '';
+                    });
+                },
+                onFocus(e, i) {
+                    this.$emit('cell-focus', { el: e.target, title: this.title, index: i, block: this });
+                },
+                onInput(e, i) {
+                    const text = e.target.textContent || '';
+                    const updated = this.modelValue.slice();
+                    updated[i] = text;
+                    this.$emit('update:modelValue', updated);
+                },
+                onKeydown(e, i) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.focusCell(i + 1);
+                    } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        this.focusCell(i + 1);
+                    } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        this.focusCell(i - 1);
+                    }
+                },
+                focusCell(i) {
+                    const inputs = this.$refs.cellInputs || [];
+                    const el = inputs[i];
+                    if (el) {
+                        el.focus();
+                        placeCaretAtEnd(el);
+                    }
+                },
+                reset() {
+                    const cleared = this.modelValue.map(() => '');
+                    this.$emit('update:modelValue', cleared);
+                    this.$nextTick(() => this.syncDom());
+                }
+            },
+            template: `
+                <div class="block-card">
+                    <div class="block-title">{{ title }}</div>
+                    <div class="block-grid">
+                        <div class="block" :class="shapeInfo.cssClass">
+                            <div
+                                v-for="(v, i) in modelValue"
+                                :key="i"
+                                class="block-cell"
+                            >
+                                <span class="cell-number">{{ i + 1 }}</span>
+                                <div
+                                    class="cell-input"
+                                    :contenteditable="disableNativeKeyboard ? 'false' : 'true'"
+                                    :inputmode="disableNativeKeyboard ? 'none' : null"
+                                    tabindex="0"
+                                    spellcheck="false"
+                                    ref="cellInputs"
+                                    :style="cellFontStyle"
+                                    @focus="onFocus($event, i)"
+                                    @input="onInput($event, i)"
+                                    @keydown="onKeydown($event, i)"
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="reset-btn" @click="reset">Reset</button>
+                </div>
+            `
+        };
+
+        const RomarabiyaBlockPreview = {
+            props: {
+                shape: { type: String, required: true },
+                modelValue: { type: Array, required: true },
+                fontSize: { type: [Number, String], default: null }
+            },
+            computed: {
+                shapeInfo() {
+                    return shapes[this.shape] || shapes['single'];
+                },
+                cellFontStyle() {
+                    if (this.fontSize === null) return {};
+                    return { fontSize: typeof this.fontSize === 'number' ? this.fontSize + 'px' : this.fontSize };
+                }
+            },
+            template: `
+                <div class="block" :class="shapeInfo.cssClass">
+                    <div
+                        v-for="(v, i) in modelValue"
+                        :key="i"
+                        class="block-cell"
+                        :style="cellFontStyle"
+                    >{{ v }}</div>
+                </div>
+            `
+        };
 
         // Max font size a single-cell block can take. Blocks that split their
         // cell area in two (2/3/4-cell shapes) or three (5/6-cell shapes) get a
         // proportionally smaller size so the letters keep fitting their cell.
-        const MAX_CELL_FONT_SIZE = 48;
+        const MAX_CELL_FONT_SIZE = 40;
 
         const app = createApp({
             components: {
-                'syllable-block': SyllableBlock,
-                'syllable-block-preview': SyllableBlockPreview
+                'romarabiya-block': RomarabiyaBlock,
+                'romarabiya-block-preview': RomarabiyaBlockPreview
             },
             data() {
                 return {
-                    font: 'lafd',
                     orientation: 'horizontal',
                     fontSizeMode: 'default',
                     showBorders: true,
                     disableNativeKeyboard: false,
-                    letters: arabicLetters,
+                    letters: romanLetters,
                     shapes: shapes,
                     blocks: [],
                     nextId: 1,
@@ -1020,14 +1141,25 @@
                     keyboardTop: 0,
                     keyboardLeft: 0,
                     activeEl: null,
+                    activeBlock: null,
+                    activeIndex: null,
+                    pickerAnchorEl: null,
 
                     viewportWidth: window.innerWidth
                 };
             },
             mounted() {
                 document.addEventListener('mousedown', this.handleDocumentMouseDown, true);
-                window.addEventListener('scroll', this.repositionKeyboard, true);
+                window.addEventListener('scroll', this.repositionFloatingPanels, true);
                 window.addEventListener('resize', this.handleWindowResize);
+                // Catches size changes the tooltips cause themselves (e.g. their own
+                // grid/label text reflowing right after first paint) that a window
+                // resize event would never fire for.
+                if (window.ResizeObserver) {
+                    this.floatingPanelsObserver = new ResizeObserver(() => this.repositionFloatingPanels());
+                    if (this.$refs.shapePickerEl) this.floatingPanelsObserver.observe(this.$refs.shapePickerEl);
+                    if (this.$refs.keyboardTooltipEl) this.floatingPanelsObserver.observe(this.$refs.keyboardTooltipEl);
+                }
             },
             methods: {
                 refreshPage() {
@@ -1035,7 +1167,11 @@
                 },
                 handleWindowResize() {
                     this.viewportWidth = window.innerWidth;
+                    this.repositionFloatingPanels();
+                },
+                repositionFloatingPanels() {
                     this.repositionKeyboard();
+                    this.repositionPicker();
                 },
                 // Mirrors the block-size breakpoints in CSS so "Auto" cell font sizing
                 // shrinks along with the blocks themselves on narrow screens.
@@ -1054,17 +1190,35 @@
                 },
                 clampHorizontal(rawLeft, halfWidth) {
                     const margin = 8;
+                    // If the tooltip is wider than the viewport has room for, there's no
+                    // valid clamp range left (min would exceed max) - just center it.
+                    if (halfWidth * 2 + margin * 2 > window.innerWidth) {
+                        return window.scrollX + window.innerWidth / 2;
+                    }
                     const min = window.scrollX + halfWidth + margin;
                     const max = window.scrollX + window.innerWidth - halfWidth - margin;
                     return Math.min(Math.max(rawLeft, min), max);
                 },
                 openPicker(index, event) {
-                    const rect = event.currentTarget.getBoundingClientRect();
+                    this.pickerAnchorEl = event.currentTarget;
                     this.pickerInsertIndex = index;
-                    this.pickerTop = rect.bottom + window.scrollY + 8;
-                    this.pickerLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, 150);
                     this.pickerOpen = true;
                     this.keyboardVisible = false;
+                    // Computed synchronously (not via $nextTick) so the picker's first
+                    // paint already has the right position - the tooltip element is
+                    // always in the DOM (only its opacity/visible class toggles), so
+                    // its width is measurable immediately without waiting a tick.
+                    this.repositionPicker();
+                },
+                repositionPicker() {
+                    if (!this.pickerAnchorEl || !this.pickerOpen) return;
+                    const rect = this.pickerAnchorEl.getBoundingClientRect();
+                    this.pickerTop = rect.bottom + window.scrollY + 8;
+                    // Measure the actual rendered tooltip width (it already reflects the
+                    // current viewport's max-width/column-count CSS) instead of guessing.
+                    const el = this.$refs.shapePickerEl;
+                    const halfWidth = (el && el.offsetWidth ? el.offsetWidth : 260) / 2;
+                    this.pickerLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, halfWidth);
                 },
                 choosePickerShape(shapeKey) {
                     if (this.pickerInsertIndex === null) return;
@@ -1087,9 +1241,13 @@
                     this.blocks.splice(index, 1);
                     this.keyboardVisible = false;
                     this.activeEl = null;
+                    this.activeBlock = null;
+                    this.activeIndex = null;
                 },
-                onCellFocus({ el }) {
+                onCellFocus({ el, index, block }) {
                     this.activeEl = el;
+                    this.activeBlock = block;
+                    this.activeIndex = index;
                     this.keyboardVisible = true;
                     this.pickerOpen = false;
                     this.repositionKeyboard();
@@ -1098,7 +1256,9 @@
                     if (!this.activeEl || !this.keyboardVisible) return;
                     const rect = this.activeEl.getBoundingClientRect();
                     this.keyboardTop = rect.bottom + window.scrollY + 8;
-                    this.keyboardLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, 170);
+                    const el = this.$refs.keyboardTooltipEl;
+                    const halfWidth = (el && el.offsetWidth ? el.offsetWidth : 320) / 2;
+                    this.keyboardLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, halfWidth);
                 },
                 handleDocumentMouseDown(e) {
                     const insideKeyboard = e.target.closest('.keyboard-tooltip');
@@ -1117,7 +1277,14 @@
                     if (!this.activeEl) return;
                     this.activeEl.textContent = letter;
                     this.activeEl.dispatchEvent(new Event('input', { bubbles: true }));
-                    this.activeEl.focus();
+                    if (this.activeBlock && this.activeIndex !== null) {
+                        // Advance to the next cell in the same block, same as pressing
+                        // Enter/ArrowRight after typing a letter manually.
+                        this.activeBlock.focusCell(this.activeIndex + 1);
+                    } else {
+                        this.activeEl.focus();
+                        placeCaretAtEnd(this.activeEl);
+                    }
                 }
             }
         });

@@ -67,7 +67,11 @@
             font: { type: String, default: 'lafd' },
             // Optional per-cell font size override (number = px, or any CSS size string).
             // Leave unset to keep the caller's default CSS font-size.
-            fontSize: { type: [Number, String], default: null }
+            fontSize: { type: [Number, String], default: null },
+            // When true, cells stop being natively editable so mobile browsers
+            // never pop up their on-screen keyboard - text can only be entered
+            // via the app's own virtual keyboard buttons.
+            disableNativeKeyboard: { type: Boolean, default: false }
         },
         emits: ['update:modelValue', 'cell-focus'],
         computed: {
@@ -146,7 +150,9 @@
                             <span class="cell-number">{{ i + 1 }}</span>
                             <div
                                 class="cell-input"
-                                contenteditable="true"
+                                :contenteditable="disableNativeKeyboard ? 'false' : 'true'"
+                                :inputmode="disableNativeKeyboard ? 'none' : null"
+                                tabindex="0"
                                 spellcheck="false"
                                 ref="cellInputs"
                                 :style="cellFontStyle"
