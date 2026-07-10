@@ -574,6 +574,16 @@
             border-color: transparent !important;
         }
 
+        /* Edge-to-edge cell font sizing: no cell padding and a tight line-height,
+           so the letter fills the cell instead of floating in the middle with
+           breathing room around it. overflow: hidden keeps oversized glyphs
+           (e.g. wide multi-character text) from bleeding past the cell border. */
+        .edge-cells .block-cell {
+            padding: 0;
+            line-height: 1;
+            overflow: hidden;
+        }
+
         /* Keyboard shown as a floating tooltip next to the cell currently being edited */
         .keyboard-tooltip {
             position: absolute;
@@ -581,7 +591,12 @@
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
-            max-width: min(360px, 94vw);
+            /* A fixed width (not max-width/auto) is required here: an absolutely
+               positioned box with only "left" set shrink-to-fits against the
+               un-translated left point, not its final centered position, so
+               near a viewport edge it can collapse far below this size even
+               though translateX(-50%) leaves plenty of room once centered. */
+            width: min(360px, 94vw);
             opacity: 0;
             pointer-events: none;
             transform: translate(-50%, 4px);
@@ -639,7 +654,8 @@
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
-            max-width: min(320px, 94vw);
+            /* Fixed width, not max-width - see .keyboard-tooltip for why. */
+            width: min(320px, 94vw);
             opacity: 0;
             pointer-events: none;
             transform: translate(-50%, 4px);
@@ -755,13 +771,16 @@
                 padding: 16px;
             }
 
+            /* Stay side by side (not stacked) even on narrow screens - the
+               whole point of this layout is avoiding two vertical columns
+               stacked underneath each other. Just tighten the gap/padding
+               so both panels still fit comfortably. */
             .builder-preview-layout.side-by-side {
-                flex-direction: column;
-                gap: 16px;
+                gap: 12px;
             }
 
             .builder-preview-layout.side-by-side .preview-panel {
-                margin-top: 0;
+                padding: 12px;
             }
 
             .shape-picker-grid {
@@ -823,6 +842,9 @@
                 <label>
                     <input type="radio" v-model="fontSizeMode" value="auto"> Auto (fit to cell)
                 </label>
+                <label>
+                    <input type="radio" v-model="fontSizeMode" value="edge"> Edge (fill cell)
+                </label>
             </div>
             <div class="control-divider"></div>
             <div class="control-group">
@@ -851,7 +873,7 @@
         </div>
 
         <div class="builder-preview-layout" :class="{ 'side-by-side': orientation === 'vertical' }">
-            <div class="composition-surface" :class="[orientation, { 'no-borders': !showBorders }]">
+            <div class="composition-surface" :class="[orientation, { 'no-borders': !showBorders, 'edge-cells': fontSizeMode === 'edge' }]">
                 <div class="insert-point">
                     <button class="add-btn" :class="{ active: pickerOpen && pickerInsertIndex === 0 }" type="button" @click="openPicker(0, $event)">+</button>
                 </div>
@@ -877,7 +899,7 @@
 
             <div class="preview-panel" v-if="blocks.length">
                 <h2>👁️ Preview</h2>
-                <div class="preview-surface" :class="[orientation, { 'no-borders': !showBorders }]">
+                <div class="preview-surface" :class="[orientation, { 'no-borders': !showBorders, 'edge-cells': fontSizeMode === 'edge' }]">
                     <romarabiya-block-preview
                         v-for="b in blocks"
                         :key="'preview-' + b.id"
@@ -1116,6 +1138,13 @@
         // proportionally smaller size so the letters keep fitting their cell.
         const MAX_CELL_FONT_SIZE = 40;
 
+        // "Edge" mode sizes text off the raw cell dimension, but a glyph's full
+        // em-box (ascent + descent) is taller than its font-size at ratio 1:1 -
+        // letters with descenders get clipped by overflow: hidden otherwise.
+        // Scaling down leaves enough headroom for the whole glyph to stay
+        // inside the cell while still reading as "filling" it.
+        const EDGE_FONT_SCALE = 0.72;
+
         const app = createApp({
             components: {
                 'romarabiya-block': RomarabiyaBlock,
@@ -1180,13 +1209,28 @@
                     if (this.viewportWidth <= 700) return MAX_CELL_FONT_SIZE * 0.875;
                     return MAX_CELL_FONT_SIZE;
                 },
+                // The actual pixel size of a block (matches .block-side-by-side etc.
+                // in CSS), used by "Edge" mode to size text off the real cell
+                // dimensions instead of the smaller, padding-aware "Auto" max size.
+                blockPixelSize() {
+                    return this.viewportWidth <= 420 ? 72 : 90;
+                },
+                // How many equal slices a shape's cell area is split into, so a
+                // font size can be scaled down from a whole-block size to a
+                // single-cell size (2/3/4-cell shapes split it in two, 5/6-cell
+                // shapes split it in three).
+                cellDivisor(cells) {
+                    if (cells === 1) return 1;
+                    if (cells === 5 || cells === 6) return 3;
+                    return 2;
+                },
                 fontSizeFor(shapeKey) {
-                    if (this.fontSizeMode !== 'auto') return null;
                     const cells = (this.shapes[shapeKey] || this.shapes['single']).cells;
-                    const max = this.maxCellFontSize();
-                    if (cells === 1) return max;
-                    if (cells === 5 || cells === 6) return max / 3;
-                    return max / 2;
+                    if (this.fontSizeMode === 'edge') {
+                        return (this.blockPixelSize() / this.cellDivisor(cells)) * EDGE_FONT_SCALE;
+                    }
+                    if (this.fontSizeMode !== 'auto') return null;
+                    return this.maxCellFontSize() / this.cellDivisor(cells);
                 },
                 clampHorizontal(rawLeft, halfWidth) {
                     const margin = 8;
