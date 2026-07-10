@@ -602,7 +602,7 @@
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
-            max-width: 340px;
+            max-width: min(340px, 94vw);
             opacity: 0;
             pointer-events: none;
             transform: translate(-50%, 4px);
@@ -677,6 +677,7 @@
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
+            max-width: min(320px, 94vw);
             opacity: 0;
             pointer-events: none;
             transform: translate(-50%, 4px);
@@ -799,11 +800,6 @@
 
             .builder-preview-layout.side-by-side .preview-panel {
                 margin-top: 0;
-            }
-
-            .shape-picker,
-            .keyboard-tooltip {
-                max-width: min(300px, 92vw);
             }
 
             .shape-picker-grid {
@@ -944,6 +940,7 @@
         </div>
 
         <div
+            ref="shapePickerEl"
             class="shape-picker"
             :class="{ visible: pickerOpen }"
             :style="{ top: pickerTop + 'px', left: pickerLeft + 'px' }"
@@ -966,6 +963,7 @@
         </div>
 
         <div
+            ref="keyboardTooltipEl"
             class="keyboard-tooltip"
             :class="{ visible: keyboardVisible }"
             :style="{ top: keyboardTop + 'px', left: keyboardLeft + 'px' }"
@@ -1020,14 +1018,23 @@
                     keyboardTop: 0,
                     keyboardLeft: 0,
                     activeEl: null,
+                    pickerAnchorEl: null,
 
                     viewportWidth: window.innerWidth
                 };
             },
             mounted() {
                 document.addEventListener('mousedown', this.handleDocumentMouseDown, true);
-                window.addEventListener('scroll', this.repositionKeyboard, true);
+                window.addEventListener('scroll', this.repositionFloatingPanels, true);
                 window.addEventListener('resize', this.handleWindowResize);
+                // Catches size changes the tooltips cause themselves (e.g. their own
+                // grid/label text reflowing right after first paint) that a window
+                // resize event would never fire for.
+                if (window.ResizeObserver) {
+                    this.floatingPanelsObserver = new ResizeObserver(() => this.repositionFloatingPanels());
+                    if (this.$refs.shapePickerEl) this.floatingPanelsObserver.observe(this.$refs.shapePickerEl);
+                    if (this.$refs.keyboardTooltipEl) this.floatingPanelsObserver.observe(this.$refs.keyboardTooltipEl);
+                }
             },
             methods: {
                 refreshPage() {
@@ -1035,7 +1042,11 @@
                 },
                 handleWindowResize() {
                     this.viewportWidth = window.innerWidth;
+                    this.repositionFloatingPanels();
+                },
+                repositionFloatingPanels() {
                     this.repositionKeyboard();
+                    this.repositionPicker();
                 },
                 // Mirrors the block-size breakpoints in CSS so "Auto" cell font sizing
                 // shrinks along with the blocks themselves on narrow screens.
@@ -1054,17 +1065,35 @@
                 },
                 clampHorizontal(rawLeft, halfWidth) {
                     const margin = 8;
+                    // If the tooltip is wider than the viewport has room for, there's no
+                    // valid clamp range left (min would exceed max) - just center it.
+                    if (halfWidth * 2 + margin * 2 > window.innerWidth) {
+                        return window.scrollX + window.innerWidth / 2;
+                    }
                     const min = window.scrollX + halfWidth + margin;
                     const max = window.scrollX + window.innerWidth - halfWidth - margin;
                     return Math.min(Math.max(rawLeft, min), max);
                 },
                 openPicker(index, event) {
-                    const rect = event.currentTarget.getBoundingClientRect();
+                    this.pickerAnchorEl = event.currentTarget;
                     this.pickerInsertIndex = index;
-                    this.pickerTop = rect.bottom + window.scrollY + 8;
-                    this.pickerLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, 150);
                     this.pickerOpen = true;
                     this.keyboardVisible = false;
+                    // Computed synchronously (not via $nextTick) so the picker's first
+                    // paint already has the right position - the tooltip element is
+                    // always in the DOM (only its opacity/visible class toggles), so
+                    // its width is measurable immediately without waiting a tick.
+                    this.repositionPicker();
+                },
+                repositionPicker() {
+                    if (!this.pickerAnchorEl || !this.pickerOpen) return;
+                    const rect = this.pickerAnchorEl.getBoundingClientRect();
+                    this.pickerTop = rect.bottom + window.scrollY + 8;
+                    // Measure the actual rendered tooltip width (it already reflects the
+                    // current viewport's max-width/column-count CSS) instead of guessing.
+                    const el = this.$refs.shapePickerEl;
+                    const halfWidth = (el && el.offsetWidth ? el.offsetWidth : 260) / 2;
+                    this.pickerLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, halfWidth);
                 },
                 choosePickerShape(shapeKey) {
                     if (this.pickerInsertIndex === null) return;
@@ -1098,7 +1127,9 @@
                     if (!this.activeEl || !this.keyboardVisible) return;
                     const rect = this.activeEl.getBoundingClientRect();
                     this.keyboardTop = rect.bottom + window.scrollY + 8;
-                    this.keyboardLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, 170);
+                    const el = this.$refs.keyboardTooltipEl;
+                    const halfWidth = (el && el.offsetWidth ? el.offsetWidth : 320) / 2;
+                    this.keyboardLeft = this.clampHorizontal(rect.left + window.scrollX + rect.width / 2, halfWidth);
                 },
                 handleDocumentMouseDown(e) {
                     const insideKeyboard = e.target.closest('.keyboard-tooltip');
