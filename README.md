@@ -12,7 +12,7 @@ Experiments in decomposing Arabic script into fixed-shape "syllable blocks" (ins
 | [index.html](index.html) | Static comparison of the two custom Kufi fonts (Font 1 / Font 2) on sample Arabic sentences, names, and words. No interactivity. |
 | [arabic-blocks.html](arabic-blocks.html) | Original demo: all 7 block shapes shown at once, editable single-letter cells, per-block font toggle, floating virtual Arabic keyboard. Self-contained (does not use `block-library.js`). |
 | [arabic-blocks-v2.html](arabic-blocks-v2.html) | Same fixed 7-shape display as v1, refactored to use the shared `SyllableBlock` component from `block-library.js`, with a single global font toggle instead of per-block. |
-| [arabic-blocks-compositor.html](arabic-blocks-compositor.html) | Interactive builder for composing an arbitrary sequence of Arabic syllable blocks (RTL). See **Compositor features** below. |
+| [hanarabiya-compositor.html](hanarabiya-compositor.html) | "Hanarabiya" (Han, as in Hangeul, + arabiya) — interactive builder for composing an arbitrary sequence of Arabic syllable blocks (RTL). See **Compositor features** below. |
 | [romarabiya-compositor.html](romarabiya-compositor.html) | "Romarabiya" — the same composition workflow, but for Arabic-to-Latin transliteration (LTR). Cells hold Latin strings (e.g. `th`, `kh`, `sh`) instead of single Arabic glyphs. |
 
 ## Shared library
@@ -26,7 +26,7 @@ Experiments in decomposing Arabic script into fixed-shape "syllable blocks" (ins
 
 ## Compositor features
 
-Both `arabic-blocks-compositor.html` and `romarabiya-compositor.html` (Arabic RTL and Romarabiya LTR respectively) share the same feature set:
+Both `hanarabiya-compositor.html` and `romarabiya-compositor.html` (Arabic RTL and Romarabiya LTR respectively) share the same feature set:
 
 - **Composition surface** — click "+" to open a shape picker and insert a block at that position; blocks can be inserted at the start, end, or between existing blocks, and removed individually.
 - **Live preview panel** — a read-only, compact rendering of the full composed sequence, updated as you type.
@@ -56,7 +56,7 @@ Any static file server works, e.g.:
 python -m http.server
 ```
 
-Then open `arabic-blocks-compositor.html` or `romarabiya-compositor.html` in a browser.
+Then open `hanarabiya-compositor.html` or `romarabiya-compositor.html` in a browser.
 
 ## Sources
 
