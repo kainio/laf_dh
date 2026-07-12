@@ -716,6 +716,19 @@
             border-color: #667eea;
         }
 
+        /* 6/5-cell shapes are Hanarabiya-only (full Arabic syllable blocks) -
+           kept visible here for consistency with the shared shape set, but
+           greyed out and unclickable, with a tooltip explaining why. */
+        .shape-option:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .shape-option:disabled:hover {
+            background: none;
+            border-color: transparent;
+        }
+
         .shape-option .block {
             width: 44px;
             height: 44px;
@@ -929,6 +942,8 @@
                     :key="key"
                     class="shape-option"
                     type="button"
+                    :disabled="isShapeDisabled(key)"
+                    :title="isShapeDisabled(key) ? 'Only available in Hanarabiya (Arabic compositor)' : ''"
                     @click="choosePickerShape(key)"
                 >
                     <div class="block" :class="info.cssClass">
@@ -1284,8 +1299,14 @@
                     this.pickerLeft = this.clampHorizontal(rawCenter, halfWidth);
                     this.pickerArrowLeft = this.arrowOffset(rawCenter, this.pickerLeft, halfWidth);
                 },
+                // 6-cell and 5-cell blocks are only meaningful for Hanarabiya's
+                // full Arabic syllable composition; Romarabiya cells hold
+                // multi-letter Latin strings, not single glyphs.
+                isShapeDisabled(shapeKey) {
+                    return shapeKey === '2x3-six' || shapeKey === '2x3-five';
+                },
                 choosePickerShape(shapeKey) {
-                    if (this.pickerInsertIndex === null) return;
+                    if (this.pickerInsertIndex === null || this.isShapeDisabled(shapeKey)) return;
                     const info = this.shapes[shapeKey];
                     const block = {
                         id: this.nextId++,
