@@ -9,7 +9,7 @@ Experiments in decomposing Arabic script into fixed-shape "syllable blocks" (ins
 
 | File | What it is |
 |---|---|
-| [index.html](index.html) | Static comparison of the two custom Kufi fonts (Font 1 / Font 2) on sample Arabic sentences, names, and words. No interactivity. |
+| [index.html](index.html) | Comparison of the two custom Kufi fonts (Font 1 / Font 2) on sample Arabic sentences, each shown alongside its standard spelling. Font toggle switches all phonetic text at once. |
 | [arabic-blocks.html](arabic-blocks.html) | Original demo: all 7 block shapes shown at once, editable single-letter cells, per-block font toggle, floating virtual Arabic keyboard. Self-contained (does not use `block-library.js`). |
 | [arabic-blocks-v2.html](arabic-blocks-v2.html) | Same fixed 7-shape display as v1, refactored to use the shared `SyllableBlock` component from `block-library.js`, with a single global font toggle instead of per-block. |
 | [hanarabiya-compositor.html](hanarabiya-compositor.html) | "Hanarabiya" (Han, as in Hangeul, + arabiya) — interactive builder for composing an arbitrary sequence of Arabic syllable blocks (RTL). See **Compositor features** below. |

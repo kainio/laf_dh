@@ -50,19 +50,36 @@
             opacity: 0.9;
         }
 
-        /* Global font switcher - controls every block, the reference grid and the keyboard at once */
+        /* Global toggles - font controls every block, the reference grid and the
+           keyboard at once; mobile keyboard controls whether cells accept native
+           OS text input or only the app's own floating keyboard */
         .global-font-toggle {
             display: flex;
             justify-content: center;
-            gap: 8px;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
             margin-bottom: 30px;
-            padding: 12px;
+            padding: 12px 20px;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 10px;
-            max-width: 320px;
+            max-width: 620px;
             margin-left: auto;
             margin-right: auto;
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group-label {
+            font-size: 0.85em;
+            color: #666;
+            font-weight: bold;
+            margin-right: 4px;
         }
 
         .global-font-toggle label {
@@ -80,6 +97,32 @@
             margin: 0;
             width: 16px;
             height: 16px;
+        }
+
+        .control-divider {
+            width: 1px;
+            height: 24px;
+            background: #ddd;
+        }
+
+        @media (max-width: 700px) {
+            .global-font-toggle {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                max-width: 100%;
+                padding: 14px;
+            }
+
+            .control-group {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .control-divider {
+                width: 100%;
+                height: 1px;
+            }
         }
 
         .blocks-container {
@@ -563,12 +606,25 @@
         </div>
 
         <div class="global-font-toggle">
-            <label>
-                <input type="radio" v-model="font" value="lafd"> Font 1
-            </label>
-            <label>
-                <input type="radio" v-model="font" value="lafd2"> Font 2
-            </label>
+            <div class="control-group">
+                <span class="control-group-label">Font:</span>
+                <label>
+                    <input type="radio" v-model="font" value="lafd"> Font 1
+                </label>
+                <label>
+                    <input type="radio" v-model="font" value="lafd2"> Font 2
+                </label>
+            </div>
+            <div class="control-divider"></div>
+            <div class="control-group">
+                <span class="control-group-label">Mobile keyboard:</span>
+                <label>
+                    <input type="radio" v-model="disableNativeKeyboard" :value="false"> Native
+                </label>
+                <label>
+                    <input type="radio" v-model="disableNativeKeyboard" :value="true"> Virtual only
+                </label>
+            </div>
         </div>
 
         <div class="blocks-container">
@@ -579,6 +635,7 @@
                 :shape="b.shape"
                 v-model="b.values"
                 :font="font"
+                :disable-native-keyboard="disableNativeKeyboard"
                 @cell-focus="onCellFocus"
             ></syllable-block>
         </div>
@@ -633,7 +690,8 @@
             },
             data() {
                 return {
-                    font: 'lafd',
+                    font: 'lafd2',
+                    disableNativeKeyboard: true,
                     letters: arabicLetters,
                     blocksData: [
                         { key: 'b1', title: 'Block ①', shape: 'side-by-side',    values: ['', ''] },

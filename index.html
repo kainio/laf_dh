@@ -1,74 +1,292 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Arabic Lafd Writing System</title>
     <style type="text/css">
-   
-        @font-face {font-family: 'lafd'; src: URL('NotoKufiArabic-Regular.ttf'); font-size:30px;}
-
-        .lafd {font-family: 'lafd';direction:rtl;}
-    
-        @font-face {font-family: 'lafd2'; src: URL('NotoKufiArabic-Regular2.ttf'); font-size:12px;}
-        .lafd2 {font-family: 'lafd2'; direction: rtl; color: black}
-
-        .lafd2ltr {font-family: 'lafd2'}
-        .green {
-          color:green;
-          direction: rtl;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+
+        @font-face {
+            font-family: 'lafd';
+            src: URL('NotoKufiArabic-Regular.ttf');
+        }
+
+        @font-face {
+            font-family: 'lafd2';
+            src: URL('NotoKufiArabic-Regular2.ttf');
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        #app {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            direction: rtl;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group-label {
+            font-size: 0.85em;
+            color: #666;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+
+        .control-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .control-group input[type="radio"] {
+            cursor: pointer;
+            margin: 0;
+            width: 16px;
+            height: 16px;
+        }
+
+        .sentence-card {
+            background: white;
+            border-radius: 14px;
+            padding: 22px 26px;
+            margin-bottom: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .sentence-label {
+            font-size: 0.7em;
+            font-weight: bold;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
         .rtl {
             direction: rtl;
+            color: #333;
+            font-size: 1.15em;
+            line-height: 1.9;
+        }
+
+        .lafd,
+        .lafd2 {
+            direction: rtl;
+        }
+
+        .lafd {
+            font-family: 'lafd';
+        }
+
+        .lafd2 {
+            font-family: 'lafd2';
+            color: #333;
+        }
+
+        .font-toggle {
+            font-size: 1.5em;
+            line-height: 2.1;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed #ddd;
+        }
+
+        .intro-card .rtl {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .intro-card .font-toggle {
+            font-size: 1.7em;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 16px 10px;
+            }
+
+            .header h1 {
+                font-size: 1.6em;
+            }
+
+            .header p {
+                font-size: 0.85em;
+            }
+
+            .controls-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                max-width: 100%;
+                padding: 14px;
+            }
+
+            .control-group {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .sentence-card {
+                padding: 16px 18px;
+            }
+
+            .rtl {
+                font-size: 1em;
+                line-height: 1.7;
+            }
+
+            .font-toggle {
+                font-size: 1.2em;
+                line-height: 1.8;
+            }
+
+            .intro-card .rtl {
+                font-size: 1.1em;
+            }
+
+            .intro-card .font-toggle {
+                font-size: 1.35em;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .sentence-card {
+                padding: 14px;
+                border-radius: 10px;
+            }
+
+            .rtl {
+                font-size: 0.9em;
+            }
+
+            .font-toggle {
+                font-size: 1.05em;
+            }
+
+            .intro-card .rtl {
+                font-size: 1em;
+            }
+
+            .intro-card .font-toggle {
+                font-size: 1.15em;
+            }
         }
     </style>
 </head>
 <body>
-  <h1 class="lafd m-5 text-center">سوفْياانْ ْالقااصيبْ</h1>
-    <h2 class="rtl">تكمن محاسن الكتابة اللفظية (الصوتية) بالحرف العربي في قدرتها على تجسيد الواقع اللغوي الحي، وأبرز مميزاتها:</h2>
-    <h2 class="lafd2">تاكمونو ماحااسينو لكيتااباتي للافظيْيْياتي (صصاْوتيْيْياتي) بيلحارفي لعاربيْيْيي فيي قودراتيهاا علاا تاجسييدي لْوااقعي للوغاْويْيْيي لحاْيْيي، ْوا ْابرازو موماْيْييزااتيهاا: </h2>
-<p class="rtl">​توثيق التراث الشفهي: تلتقط النطق الفعلي للكلمات بدقة، مما يساهم في حفظ اللهجات المحلية واللغات المحكية وحمايتها من الاندثار في القوالب الرسمية.</p>
-    <p class="lafd">تاْوثييقْ تتورااثْ ششافااهيي : تالتاقيطو ننوطقا لفيعليْيْيا ليلكاليماتي بيديققاتين، ميمماا ْيوسااهيمو فيي حيفظي للاهاجااتي لماحاللْياتي ْوا للوغااتي لماحكْيْياتي ْوا حيمااْياتيهاا مينا لقْوااليبي رراسميْيْياتي.</p>
-    <p class="lafd2">تاْوثييقْ تتورااثْ ششافااهيي : تالتاقيطو ننوطقا لفيعليْيْيا ليلكاليماتي بيديققاتين، ميمماا ْيوسااهيمو فيي حيفظي للاهاجااتي لماحاللْياتي ْوا للوغااتي لماحكْيْياتي ْوا حيمااْياتيهاا مينا لقْوااليبي رراسميْيْياتي.</p>
-    <p class="rtl">​إزالة اللبس في القراءة: بكتابة الكلمة كما تُنطق تماماً، يتم تجاوز مشكلة غياب التشكيل، مما يسهل الفهم المباشر والسريع دون الحاجة لتخمين الحركات.</p>
- <p class="lafd2">ْايزاالاتو للوبسي فيي لقيرااْاتي : بيكيتااباتي لكاليماتي كاماا تونطاقو تاماماا ، ْياتيممو تاجااْووزو موشكيلتي غيْياابي تتاشكييلي، ميمما  ْيوساههيلو لفاهما لمبااشيرا  ْوا سسارييعا دوونا لحااجاتي لتاخمييني لحاراكااتي. </p>
-    
-    <p class="rtl">​دعم الرقمنة والذكاء الاصطناعي: تقدم أساساً معيارياً يسهل على النماذج اللغوية (LLMs) وأنظمة المعالجة الآلية فهم اللغات المحلية، توليدها، وتوثيقها رقمياً بكفاءة أعلى.</p>
-    <p class="lafd2">داعمو رراقماناتي ْوا ذذاكااْاي لْايصطينااعيي: توقادديمو ْاسااساا ميعْيااريْيْياا ْيوساههيلو علاا ننامااديجي للوغاْويْيْياتي (LLMs) ْوا ْانظيماتي لموعاالجتي لْااليْيْياتي فاهما للوغااتي لماحلليْياتي، تاْولييديها،  ْوا تاْوثييقيهاا  راقميْياا بيكافااْاتين ْاعلاا.</p>
-    
-    <p class="rtl">​المرونة التعبيرية: تتحرر من القيود الإملائية الكلاسيكية الصارمة، لتناسب سرعة التواصل الرقمي الحديث والقدرة على نقل الانفعالات الصوتية الدقيقة للنص.</p>
-    <p class="lafd2">ْالمورووناتتو تتاعبييرْيْياتو: تاتاحاررارو مينا لقوْيوودي لْايملااْايْيْياتي لكلااسسييكيْيْياتي صصااريماتي، ليتونااسيبا سورعاتا تتاْوااصولي رراقميْيْيي لحدييثي  ْوا لقودراتا عالاا ناقلي لْاينفعالااتي صصاْوتيْيْياتي داقييقاتي لينناصي.</p>
-    <p class="lafd m-5">كاْوْوارا</p>
-  <p class="lafd2 m-5">قاطارااتون ليلعاْيني</p>
-  <p class="lafd2 m-5">موختابارْ</p>
-  <h2 class="green"><span class="lafd2">موحاممادْ</span>
-  </h2>
-  <h2 class="green"><span class="lafd">موحاممادْ</span>
-  </h2>
+    <div id="app">
+        <div class="header">
+            <h1>📝 Arabic Lafd Writing System</h1>
+            <p>مقارنة بين الخط العربي المعتاد وكتابته اللفظية (الصوتية)</p>
+        </div>
 
-  <h2 class="green">أَمْلَى = <span class="lafd2">ْاملاى</span>
-  </h2>
-  <h2 class="green">أَمْلَى = <span class="lafd">ْاملاى</span>
-  </h2>
+        <div class="controls-bar">
+            <div class="control-group">
+                <span class="control-group-label">Font:</span>
+                <label>
+                    <input type="radio" name="font" value="lafd" onchange="setFont('lafd')"> Font 1
+                </label>
+                <label>
+                    <input type="radio" name="font" value="lafd2" checked onchange="setFont('lafd2')"> Font 2
+                </label>
+            </div>
+        </div>
 
-   <h2 class="green">أَمْلَى = <span class="lafd">ْاملاا</span>
-</h2>
-  <h2 class="green">هِشَامْ  = <span class="lafd2">هيشاامْ</span>
-  </h2>
-  <p class="lafd">كوفيتييرْ</p>
-  <h2 class="green">مَأْدُبَةٌ= <span class="lafd2">ماْْدوباةون</span>
-  </h2>
-  <h2 class="green">مَأْدُبَةٌ= <span class="lafd">ماْْدوباتون</span>
-  </h2>
+        <div class="sentence-card intro-card">
+            <div class="sentence-label">Standard spelling</div>
+            <h2 class="rtl">تكمن محاسن الكتابة اللفظية (الصوتية) بالحرف العربي في قدرتها على تجسيد الواقع اللغوي الحي، وأبرز مميزاتها:</h2>
+            <div class="sentence-label" style="margin-top: 14px;">Lafd (phonetic)</div>
+            <h2 class="font-toggle lafd2">تاكمونو ماحااسينو لكيتااباتي للافظيْيْياتي (صصاْوتيْيْياتي) بيلحارفي لعارابيْيْيي فيي قودراتيهاا عالاا تاجسييدي لْوااقيعي للوغاْويْيْيي لحاْيْيي، ْوا ْابرازو موماْيْييزااتيهاا: </h2>
+        </div>
 
-  <h3 class="green">الإِنْسَانِيَّةُ = <span class="lafd2">ْالْاينساانيْيْياةو</span></h3>
+        <div class="sentence-card">
+            <div class="sentence-label">Standard spelling</div>
+            <p class="rtl">​توثيق التراث الشفهي: تلتقط النطق الفعلي للكلمات بدقة، مما يساهم في حفظ اللهجات المحلية واللغات المحكية وحمايتها من الاندثار في القوالب الرسمية.</p>
+            <div class="sentence-label" style="margin-top: 14px;">Lafd (phonetic)</div>
+            <p class="font-toggle lafd2">تاْوثييقو تتورااثي ششافااهيْيْيي : تالتاقيطو ننوطقا لفيعليْيْيا ليلكاليمااتي بيديققاتين، ميمماا ْيوسااهيمو فيي حيفظي للاهاجااتي لماحالليْيْياتي ْوا للوغااتي لماحكيْيْياتي ْوا حيمااْياتيهاا مينا لْاينديثااري فيي لقاْوااليبي رراسميْيْياتي.</p>
+        </div>
 
-  <h2 class="green">مُعَلِّمَةٌ = <span class="lafd2">موعالليماةون</span></h2>
-  
+        <div class="sentence-card">
+            <div class="sentence-label">Standard spelling</div>
+            <p class="rtl">​إزالة اللبس في القراءة: بكتابة الكلمة كما تُنطق تماماً، يتم تجاوز مشكلة غياب التشكيل، مما يسهل الفهم المباشر والسريع دون الحاجة لتخمين الحركات.</p>
+            <div class="sentence-label" style="margin-top: 14px;">Lafd (phonetic)</div>
+            <p class="font-toggle lafd2">ْايزاالاتو للوبسي فيي لقيرااْاتي : بيكيتااباتي لكاليماتي كاماا تونطاقو تامامان ، ْياتيممو تاجااْووزو موشكيلاتي غيْياابي تتاشكييلي، ميمما  ْيوساههيلو لفاهما لموبااشيرا  ْوا سسارييعا دوونا لحااجاتي لتاخمييني لحاراكااتي. </p>
+        </div>
 
- <!--  <h1 class="lafd2ltr m-5 text-center">234-&#x0623;&#8206;-123</h1>
-  <h1>234-&#x0623;&#8206;-123</h1> -->
+        <div class="sentence-card">
+            <div class="sentence-label">Standard spelling</div>
+            <p class="rtl">​دعم الرقمنة والذكاء الاصطناعي: تقدم أساساً معيارياً يسهل على النماذج اللغوية (LLMs) وأنظمة المعالجة الآلية فهم اللغات المحلية، توليدها، وتوثيقها رقمياً بكفاءة أعلى.</p>
+            <div class="sentence-label" style="margin-top: 14px;">Lafd (phonetic)</div>
+            <p class="font-toggle lafd2">داعمو رراقماناتي ْوا ذذاكااْاي لْايصطينااعيْيْيي: توقادديمو ْاسااسان ميعْيااريْيْيان ْيوساههيلو عالاا ننامااديجي للوغاْويْيْياتي (LLMs) ْوا ْانظيماتي لموعاالاجاتي لْااليْيْياتي فاهما للوغااتي لماحالليْيْياتي، تاْولييديها،  ْوا تاْوثييقيهاا  راقميْيْيان بيكافااْاتين ْاعلاا.</p>
+        </div>
 
+        <div class="sentence-card">
+            <div class="sentence-label">Standard spelling</div>
+            <p class="rtl">​المرونة التعبيرية: تتحرر من القيود الإملائية الكلاسيكية الصارمة، لتناسب سرعة التواصل الرقمي الحديث والقدرة على نقل الانفعالات الصوتية الدقيقة للنص.</p>
+            <div class="sentence-label" style="margin-top: 14px;">Lafd (phonetic)</div>
+            <p class="font-toggle lafd2">ْالمورووناتو تتاعبييريْيْياتو: تاتاحاررارو مينا لقوْيوودي لْايملااْايْيْياتي لكلااسييكيْيْياتي صصااريماتي، ليتونااسيبا سورعاتا تتاْوااصولي رراقميْيْيي لحادييثي  ْوا لقودراتا عالاا ناقلي لْاينفيعاالااتي صصاْوتيْيْياتي دداقييقاتي لينناصصي.</p>
+        </div>
+    </div>
+
+    <script>
+        function setFont(font) {
+            document.querySelectorAll('.font-toggle').forEach(function (el) {
+                el.classList.remove('lafd', 'lafd2');
+                el.classList.add(font);
+            });
+        }
+    </script>
 </body>
 </html>
