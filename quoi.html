@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wach?! — La Route du Sel · prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E8EBF3; --surface:#F7F8FB; --ink:#1E1B2E; --muted:#5A586B; --line:#CBD0DF;
+  --souk:#2E3A8C; --medina:#8F2D2D; --you:#B87D08; --you-soft:#F3E3BC; --riv:#1C7756; --riv-soft:#CDE8DC;
+  --paper:#F6F2EA; --paper-ink:#1E1B2E; --gold:#C9A227;
+  --f-ui:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-kufi:'Reem Kufi','Figtree',Georgia,serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#221912; --surface:#2F231A; --ink:#F1E9DF; --muted:#B8AA9B; --line:#4A3729;
+    --souk:#34419A; --medina:#962F2F; --you:#E3A21A; --you-soft:#4A3913; --riv:#2FA67C; --riv-soft:#173A2E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#221912; --surface:#2F231A; --ink:#F1E9DF; --muted:#B8AA9B; --line:#4A3729;
+  --souk:#34419A; --medina:#962F2F; --you:#E3A21A; --you-soft:#4A3913; --riv:#2FA67C; --riv-soft:#173A2E;
+  color-scheme:dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+*,*::before,*::after{box-sizing:inherit;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{margin:0;}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;}
+#app{max-width:560px;margin:0 auto;padding:14px 14px 40px;}
+h1{font-family:var(--f-kufi);font-weight:700;font-size:2.15rem;line-height:1.05;margin:.3em 0 .25em;letter-spacing:.01em;}
+h2{font-family:var(--f-kufi);font-weight:600;font-size:1.2rem;margin:1.4em 0 .5em;}
+h3{margin:0;font-size:.95rem;font-weight:600;}
+p{margin:.4em 0;}
+.lede{color:var(--muted);max-width:44ch;}
+.crumb{color:var(--muted);font-size:.88rem;margin:0;}
+.faint{color:var(--muted);font-size:.88rem;}
+button{font:inherit;color:inherit;cursor:pointer;}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--you);outline-offset:2px;}
+button:disabled{opacity:.4;cursor:not-allowed;}
+.primary{display:block;width:100%;margin:22px 0 8px;padding:15px 18px;border:0;border-radius:12px;background:var(--you);color:#1E1404;font-weight:700;font-size:1.05rem;}
+.ghost{display:block;width:100%;padding:13px;border:1.5px solid var(--line);border-radius:12px;background:transparent;font-weight:600;}
+
+/* --- cartes --- */
+.card{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  width:62px;height:88px;border-radius:9px;background:var(--paper);color:var(--paper-ink);border:1.5px solid #D9D2C3;
+  box-shadow:0 1px 0 rgba(0,0,0,.18);padding:0;flex:none;}
+.card .v{font-family:var(--f-kufi);font-weight:700;font-size:1.9rem;line-height:1;}
+.card .s svg{width:15px;height:15px;display:block;}
+.card .s{color:#7A5A3A;}
+.card.neutral .s{color:#9A9A9A;} .card.fx-oros .s{color:#B07D0B;} .card.fx-copas .s{color:#A8322D;} .card.fx-espadas .s{color:#3C5A8A;} .card.fx-bastos .s{color:#7A5A3A;}
+.card .s svg *{fill:currentColor;}
+.card .mk{position:absolute;top:3px;right:5px;font-size:.72rem;color:#8A6B00;}
+.card .mk+.mk{right:16px;}
+.card.fx-oros{border-color:#C79A2B;box-shadow:0 0 0 2px #C79A2B inset,0 1px 0 rgba(0,0,0,.18);} .card.fx-copas{border-color:#A8322D;box-shadow:0 0 0 2px #A8322D inset,0 1px 0 rgba(0,0,0,.18);} .card.fx-espadas{border-color:#3C5A8A;box-shadow:0 0 0 2px #3C5A8A inset,0 1px 0 rgba(0,0,0,.18);} .card.fx-bastos{border-color:#7A5A3A;box-shadow:0 0 0 2px #7A5A3A inset,0 1px 0 rgba(0,0,0,.18);}
+.card.sm{width:42px;height:60px;border-radius:7px;}
+.card.sm .v{font-size:1.3rem;} .card.sm .s svg{width:11px;height:11px;}
+.card.own-p{box-shadow:0 0 0 3px var(--you);} .card.own-r{box-shadow:0 0 0 3px var(--riv);}
+button.card{transition:transform .12s ease;}
+button.card.sel{transform:translateY(-10px);box-shadow:0 0 0 3px var(--you),0 6px 14px rgba(0,0,0,.25);}
+.back{display:inline-block;width:16px;height:24px;border-radius:3px;background:var(--riv);opacity:.75;margin-left:-6px;border:1px solid var(--surface);}
+
+/* --- titre --- */
+.title h1{font-size:2.8rem;margin-top:.4em;}
+.starters{display:grid;gap:10px;}
+.starter{text-align:left;display:grid;gap:3px;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);}
+.starter.on{border-color:var(--you);background:var(--you-soft);}
+.st-name{font-weight:700;font-size:1.02rem;} .st-desc{color:var(--muted);font-size:.92rem;}
+.st-vals{font-family:var(--f-kufi);font-size:1rem;letter-spacing:.06em;}
+.seed{margin-top:18px;display:grid;gap:4px;}
+.seed label{font-weight:600;font-size:.92rem;}
+.seed input{font:inherit;font-family:var(--f-kufi);font-size:1.15rem;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);width:10ch;}
+.hint{color:var(--muted);font-size:.85rem;}
+.rules{margin-top:18px;border-top:1px solid var(--line);padding-top:10px;}
+.rules summary{font-weight:600;cursor:pointer;padding:6px 0;}
+.rules ul{padding-left:1.1em;margin:.4em 0;} .rules li{margin:.35em 0;font-size:.94rem;}
+
+/* --- intro --- */
+.intro h1{font-size:2.5rem;}
+.rival-name{font-family:var(--f-kufi);font-size:1.25rem;color:var(--riv);margin:0;}
+.rule{background:var(--surface);border-left:4px solid var(--medina);padding:9px 12px;border-radius:0 10px 10px 0;font-weight:600;}
+
+/* --- jeu --- */
+.top{display:flex;justify-content:space-between;align-items:baseline;}
+.turn{font-size:.95rem;color:var(--muted);} .turn b{color:var(--ink);font-family:var(--f-kufi);font-size:1.25rem;}
+.scores{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch;margin:10px 0 12px;}
+.sc{border-radius:12px;padding:8px 10px;background:var(--surface);display:grid;}
+.sc.you{border-left:5px solid var(--you);} .sc.riv{border-right:5px solid var(--riv);text-align:right;}
+.sc .lab{font-size:.82rem;color:var(--muted);} .sc .pts{font-family:var(--f-kufi);font-size:1.9rem;font-weight:700;line-height:1.05;}
+.sc .sub{font-size:.74rem;color:var(--muted);}
+.moul{align-self:center;text-align:center;font-size:.72rem;font-weight:700;padding:6px 7px;border-radius:9px;border:1.5px dashed var(--line);color:var(--muted);}
+.moul span{font-weight:500;} .moul.you{border-color:var(--you);color:var(--you);} .moul.riv{border-color:var(--riv);color:var(--riv);}
+
+.intent{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:var(--riv-soft);border:2px solid var(--riv);}
+.intent .card{transform:rotate(-4deg);width:66px;height:94px;}
+.intent-txt{flex:1;display:grid;gap:1px;}
+.intent-txt .lab{font-size:.84rem;color:var(--muted);}
+.intent-txt .where{font-family:var(--f-kufi);font-size:1.35rem;font-weight:700;color:var(--riv);}
+.rule-mini{font-size:.76rem;color:var(--medina);font-weight:600;}
+.coin{font-size:.76rem;font-weight:600;padding-left:20px;position:relative;margin-top:2px;}
+.coin::before{content:'';position:absolute;left:0;top:1px;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:inset 0 0 0 2px rgba(0,0,0,.18);}
+.coin-p{color:var(--you);} .coin-r{color:var(--riv);}
+.riv-hand{display:flex;padding-left:6px;}
+
+.board{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 10px;}
+.zone{border-radius:14px;padding:9px 9px 11px;color:#fff;min-height:132px;}
+.zS{background:var(--souk);} .zM{background:var(--medina);}
+.zone h3{font-family:var(--f-kufi);font-size:1.05rem;margin-bottom:7px;letter-spacing:.02em;}
+.zcards{display:flex;flex-wrap:wrap;gap:6px;}
+.zone .empty{font-size:.8rem;opacity:.8;margin:0;}
+.ronda-corner{margin-top:9px;padding-top:7px;border-top:1px dashed rgba(255,255,255,.4);display:flex;flex-wrap:wrap;gap:5px;font-size:.78rem;}
+.ronda-corner .faint{color:rgba(255,255,255,.7);font-size:.76rem;}
+.pair{font-family:var(--f-kufi);font-weight:700;padding:2px 7px;border-radius:7px;background:var(--paper);color:var(--paper-ink);}
+.pair.own-p{box-shadow:0 0 0 2px var(--you);} .pair.own-r{box-shadow:0 0 0 2px var(--riv);}
+
+.last{background:var(--surface);border-radius:12px;padding:9px 12px;font-size:.88rem;margin-bottom:10px;}
+.wach{font-family:var(--f-kufi);font-weight:700;color:var(--you);font-size:1.05rem;margin-right:2px;}
+@media (prefers-reduced-motion: no-preference){ .last{animation:pop .35s ease-out;} @keyframes pop{from{transform:scale(.97);opacity:.4}to{transform:none;opacity:1}} }
+
+.actions{display:grid;gap:8px;min-height:44px;}
+.play{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;text-align:left;padding:11px 13px;border-radius:12px;border:0;color:#fff;}
+.play.zS{background:var(--souk);} .play.zM{background:var(--medina);}
+.play-t{grid-column:1/-1;font-weight:700;font-size:1.02rem;margin-bottom:3px;}
+.pv-delta{font-weight:700;font-size:.86rem;} .pv-delta.riv{opacity:.85;}
+.pv-ev{font-size:.78rem;opacity:.92;} .pv-ev.riv{opacity:.78;}
+.pv-ord{grid-column:1/-1;font-size:.74rem;opacity:.75;margin-top:3px;}
+.pv-branch{grid-column:1/-1;font-size:.8rem;font-weight:700;margin-top:6px;padding-top:5px;border-top:1px solid rgba(255,255,255,.3);}
+
+.hand{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:18px 0 6px;}
+.caravan{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;padding:9px 11px;border-radius:12px;background:var(--surface);}
+.caravan>.lab{font-weight:600;font-size:.86rem;width:100%;}
+.cv-step{display:inline-flex;align-items:center;gap:4px;padding-right:8px;border-right:1px solid var(--line);}
+.cv-step:last-child{border-right:0;}
+.cv-t{font-size:.74rem;color:var(--muted);margin-right:2px;}
+.corp-row{display:grid;gap:6px;margin-top:10px;}
+.corp{font-size:.82rem;padding:7px 10px;border-radius:10px;background:var(--you-soft);border-left:4px solid var(--you);}
+
+/* --- résultat / marché --- */
+.result.won h1{color:var(--you);} .result.lost h1{color:var(--medina);}
+.tally{width:100%;border-collapse:collapse;margin:12px 0;font-size:.95rem;}
+.tally th,.tally td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right;}
+.tally th[scope="row"]{text-align:left;font-weight:500;color:var(--muted);}
+.tally thead th{font-size:.82rem;color:var(--muted);font-weight:600;}
+.gain{font-size:1.05rem;}
+.purse{font-size:1.1rem;} .purse b{font-family:var(--f-kufi);font-size:1.6rem;color:var(--you);}
+.msg{background:var(--you-soft);padding:8px 12px;border-radius:10px;font-size:.92rem;}
+.offer{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;background:var(--surface);margin-bottom:8px;}
+.offer p{margin:.15em 0 0;font-size:.86rem;color:var(--muted);}
+.offer .role{color:var(--muted);font-size:.82rem;}
+.offer button{flex:none;padding:9px 11px;border-radius:10px;border:1.5px solid var(--you);background:transparent;font-weight:600;font-size:.86rem;white-space:nowrap;}
+.deck{display:flex;flex-wrap:wrap;gap:6px;}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:5;}
+.sheet-in{background:var(--bg);width:100%;max-width:560px;margin:0 auto;border-radius:18px 18px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow:auto;}
+.sheet-in .deck{margin-bottom:14px;}
+/* --- pile ou face --- */
+.flip-ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:rgba(14,10,8,.72);padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));cursor:pointer;}
+.flip-title{font-family:var(--f-kufi);font-size:1.5rem;font-weight:700;color:#F6F2EA;margin:0;}
+.flip-stage{position:relative;width:160px;height:300px;perspective:900px;display:flex;align-items:flex-end;justify-content:center;}
+.flip-toss{position:absolute;bottom:40px;left:14px;width:132px;height:132px;transform-style:preserve-3d;}
+.flip-coin{position:relative;width:132px;height:132px;transform-style:preserve-3d;}
+.flip-edge{position:absolute;inset:0;border-radius:50%;background:#7A5508;}
+.flip-face{position:absolute;inset:0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;font-family:var(--f-kufi);font-weight:700;}
+.flip-face svg{width:54px;height:54px;}
+.flip-face .fl{font-size:1.15rem;line-height:1;}
+.flip-face .fs{font-size:.72rem;font-weight:600;font-family:var(--f-ui);opacity:.85;}
+.f-you{transform:translateZ(5px);color:#4A3002;background:radial-gradient(circle at 35% 30%,#FBE3A0 0,#E9B53A 38%,#C98A0C 70%,#8A5E05 100%);box-shadow:inset 0 0 0 6px #A87407,inset 0 0 0 8px #F3D27A;}
+.f-you svg *{fill:#9A6A06;}
+.f-riv{transform:rotateX(180deg) translateZ(5px);color:#EAF7F1;background:radial-gradient(circle at 35% 30%,#7FD8B6 0,#2FA67C 40%,#1C7756 72%,#0F4A35 100%);box-shadow:inset 0 0 0 6px #155E44,inset 0 0 0 8px #6CCBA6;}
+.f-riv svg *{fill:#0F4A35;}
+.flip-shadow{position:absolute;bottom:22px;left:30px;width:100px;height:16px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(3px);}
+.flip-res{color:#F6F2EA;text-align:center;max-width:30ch;margin:0;font-size:1.05rem;min-height:3em;opacity:0;transition:opacity .25s ease;}
+.flip-res.show{opacity:1;} .flip-res b{font-family:var(--f-kufi);font-size:1.3rem;}
+.flip-res.p b{color:#F2C14E;} .flip-res.r b{color:#5BD0A3;}
+.flip-go{margin:0;padding:10px 22px;border-radius:999px;border:1.5px solid rgba(246,242,234,.5);background:transparent;color:#F6F2EA;font-weight:600;opacity:0;transition:opacity .25s ease;}
+.flip-go.show{opacity:1;}
+
+/* --- v2 : modules, mèches, deck --- */
+.ghost.sm{width:auto;display:inline-block;padding:8px 16px;margin:10px 0 0;font-size:.9rem;}
+.lab{font-size:.84rem;font-weight:600;color:var(--muted);display:block;}
+.mods{display:grid;gap:10px;}
+.mod{text-align:left;display:grid;gap:4px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);}
+.mod.on{border-color:var(--you);background:var(--you-soft);}
+.mod-t{display:flex;justify-content:space-between;align-items:baseline;} .mod-s{font-size:.8rem;color:var(--muted);font-weight:600;} .mod.on .mod-s{color:var(--you);}
+.mod-d{font-size:.88rem;color:var(--muted);}
+.hist{display:flex;gap:3px;align-items:flex-end;margin:8px 0 4px;}
+.hb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;}
+.hb i{display:block;width:72%;background:var(--you);border-radius:3px 3px 0 0;order:2;}
+.hb em{order:1;font-style:normal;font-size:.66rem;color:var(--muted);min-height:13px;}
+.hb b{order:3;font-size:.68rem;font-family:var(--f-kufi);color:var(--muted);margin-top:2px;font-weight:600;}
+.st-bar{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+.bchips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;}
+.bchip{display:inline-flex;align-items:center;gap:7px;padding:7px 8px 7px 13px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);font-size:.92rem;min-height:40px;}
+.bchip.sm{padding:3px 5px 3px 10px;font-size:.8rem;min-height:0;gap:5px;}
+.bchip .fz{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:.78rem;font-weight:700;font-family:var(--f-kufi);}
+.bchip.sm .fz{width:17px;height:17px;font-size:.68rem;}
+button.bchip:hover:not(:disabled){border-color:var(--you);}
+.bchip.on{background:var(--you);border-color:var(--you);color:#1E1404;} .bchip.on .fz{background:#1E1404;color:var(--you);}
+.bchip.used{text-decoration:line-through;opacity:.5;}
+.arsenal{margin:12px 0;padding:11px 12px;border-radius:14px;background:var(--surface);}
+.bdesc{margin:6px 0 4px;font-size:.88rem;} .params{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+.vals{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.vb{min-width:42px;height:42px;padding:0 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);font-family:var(--f-kufi);font-weight:700;font-size:1.05rem;}
+.vb.wide{flex:1;font-family:var(--f-ui);font-size:.9rem;} .vb.on{background:var(--you);border-color:var(--you);color:#1E1404;}
+.two{display:flex;gap:8px;margin-top:6px;}
+.tgt{margin-top:6px;gap:10px;} .tg{display:inline-flex;flex-direction:column;align-items:center;gap:2px;} .tg em{font-style:normal;font-size:.68rem;color:var(--muted);}
+.exch{margin:10px 0;padding:10px 12px;border-radius:12px;background:var(--you-soft);border-left:4px solid var(--you);}
+.tog{margin-top:6px;width:100%;padding:11px 12px;border-radius:10px;border:1.5px solid var(--you);background:transparent;font-weight:600;text-align:left;}
+.tog.on{background:var(--you);color:#1E1404;}
+.bannounce{font-size:.82rem;font-weight:600;color:var(--medina);} .spare{font-size:.8rem;color:var(--muted);}
+.icards{display:flex;gap:4px;} .icards .card+.card{margin-left:-14px;transform:rotate(5deg);}
+.pot{margin:-4px 0 10px;text-align:center;font-size:.84rem;color:var(--muted);} .pot b{font-family:var(--f-kufi);font-size:1.15rem;color:var(--ink);}
+.rdeck{margin:14px 0 6px;} .mcs{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;}
+.mc{display:inline-flex;align-items:baseline;gap:2px;padding:3px 9px;border-radius:8px;background:var(--surface);border:1px solid var(--line);font-size:.92rem;} .mc b{font-family:var(--f-kufi);font-size:1.05rem;} .mc i{font-style:normal;font-size:.76rem;color:var(--muted);}
+.unseen{margin:10px 0 0;font-size:.9rem;} .unseen summary{cursor:pointer;padding:6px 0;font-weight:600;}
+.fal{margin:10px 0;padding:10px 12px;border-radius:12px;border:1.5px dashed var(--riv);background:var(--riv-soft);} .fal .zcards{margin-top:6px;}
+.hint-warn{background:var(--you-soft);border-left:4px solid var(--you);padding:9px 12px;border-radius:0 10px 10px 0;margin:0;font-weight:600;font-size:.92rem;}
+.pv-bar{font-weight:700;} .pv-ex{font-weight:700;background:rgba(255,255,255,.14);padding:3px 6px;border-radius:6px;}
+.pv-delta i{font-style:normal;opacity:.8;font-weight:500;}
+.card.pairable{box-shadow:0 0 0 3px var(--you);} .card.dim{opacity:.38;}
+.rsv{margin-left:auto;}
+.next{margin:14px 0;padding:11px 12px;border-radius:14px;background:var(--surface);}
+.dstats{margin:8px 0 12px;padding:11px 12px;border-radius:14px;background:var(--surface);}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:10px 0 8px;} .dgrid div{display:grid;} .dgrid dt{font-size:.76rem;color:var(--muted);} .dgrid dd{margin:0;font-family:var(--f-kufi);font-size:1.15rem;font-weight:700;}
+.stacks{display:flex;flex-wrap:wrap;gap:16px 14px;margin:10px 0 6px;padding-bottom:8px;}
+.stack{position:relative;background:none;border:0;padding:0;border-radius:10px;}
+.stack.multi .card{box-shadow:3px 3px 0 var(--line),6px 6px 0 var(--line);}
+.stack .cnt{position:absolute;bottom:-8px;right:-8px;background:var(--ink);color:var(--bg);border-radius:12px;padding:1px 8px;font-size:.78rem;font-weight:700;}
+.stack:disabled{opacity:1;cursor:default;} button.stack:not(:disabled):hover .card{transform:translateY(-3px);}
+.sh-head{display:flex;gap:14px;align-items:center;margin-bottom:8px;} .sh-head h2{margin:0 0 4px;font-size:1.15rem;}
+.sh{margin:14px 0 4px;font-size:.95rem;} .backs{display:flex;padding-left:6px;margin-bottom:6px;}
+.offer .why{color:var(--medina);font-size:.8rem;margin:.2em 0 0;}
+.offer button{min-height:40px;}
+.owned{margin:8px 0;} .own-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;}
+.link{border:0;background:none;color:var(--you);font-weight:600;text-decoration:underline;font-size:.84rem;text-align:right;padding:6px 2px;}
+/* --- nouvelle valeur --- */
+.newvals{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 6px;}
+.newv{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;padding:0;}
+.newv .rv{font-size:.72rem;color:var(--muted);} button.newv:hover .card{transform:translateY(-3px);}
+.offer .delta{font-size:.82rem;font-weight:600;color:var(--you);margin:.3em 0 0;}
+.swaps{display:grid;gap:8px;margin-bottom:12px;}
+.swaprow{display:flex;gap:12px;align-items:center;text-align:left;padding:9px 11px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);min-height:60px;}
+.swaprow:hover{border-color:var(--you);} .sw-t{display:grid;gap:2px;} .sw-t i{font-style:normal;font-weight:500;color:var(--muted);} .sw-d{font-size:.82rem;color:var(--muted);}
+
+/* --- v3 : route, villes, tutoriel, réglages --- */
+.city-0{--cityc:#2F8F83;} .city-1{--cityc:#4A55B8;} .city-2{--cityc:#C0502F;} .city-3{--cityc:#C79A2B;}
+main.travel,main.intro,main.market,main.reward-screen{border-top:5px solid var(--cityc,var(--line));padding-top:10px;margin-top:-4px;}
+.resume{margin:14px 0 8px;padding:12px 14px;border-radius:14px;background:var(--you-soft);border-left:5px solid var(--you);} .resume p{margin:.3em 0;} .resume .primary{margin:10px 0 4px;}
+.stats{margin:.2em 0 .6em;}
+.seedrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;} .ghost.sm{width:auto;display:inline-block;padding:8px 16px;margin:0;font-size:.9rem;}
+.row2{display:flex;gap:10px;margin-top:6px;}
+.route{display:flex;align-items:flex-start;justify-content:space-between;margin:18px 4px 6px;position:relative;}
+.route::before{content:'';position:absolute;left:8%;right:8%;top:9px;height:2px;background:var(--line);}
+.cdot{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;font-size:.74rem;color:var(--muted);text-align:center;}
+.cdot i{width:18px;height:18px;border-radius:50%;background:var(--bg);border:2.5px solid var(--line);display:block;z-index:1;}
+.cdot.done i{background:var(--riv);border-color:var(--riv);} .cdot.cur i{background:var(--you);border-color:var(--you);box-shadow:0 0 0 4px var(--you-soft);}
+.cdot.cur em{color:var(--ink);font-weight:700;} .cdot em{font-style:normal;}
+.cstages{list-style:none;padding:0;margin:8px 0 14px;display:grid;gap:8px;}
+.cstages li{padding:10px 12px;border-radius:12px;background:var(--surface);border-left:4px solid var(--line);display:grid;gap:2px;} .cstages li b{font-size:.98rem;} .cstages li span{font-size:.82rem;color:var(--muted);}
+.cstages li.boss{border-left-color:var(--you);background:var(--you-soft);} .cstages li.done{opacity:.55;}
+.tip{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:var(--surface);border-left:4px solid var(--riv);font-size:.88rem;}
+.rcorps{margin-top:8px;} .rcorps .corp{background:var(--riv-soft);border-left-color:var(--riv);}
+.rewards{display:grid;gap:12px;margin:14px 0;}
+.reward{text-align:left;display:grid;gap:4px;padding:14px 16px;border-radius:14px;border:2px solid var(--you);background:var(--surface);} .reward b{font-family:var(--f-kufi);font-size:1.25rem;} .reward span:last-child{font-size:.9rem;color:var(--muted);}
+.reward:hover,.reward:focus-visible{background:var(--you-soft);}
+.share{margin:14px 0;padding:10px 12px;border-radius:12px;background:var(--surface);} .share p{margin:0 0 8px;font-size:.9rem;word-break:break-word;}
+.tuto .sheet-in{max-width:520px;} .tuto-vis{margin:10px 0 14px;padding:14px;border-radius:14px;background:var(--surface);}
+.tv{display:flex;gap:12px;justify-content:center;align-items:flex-end;flex-wrap:wrap;} .tv.chain{align-items:center;} .tv span{font-size:1.4rem;color:var(--muted);} .tv .big{font-family:var(--f-kufi);font-size:1.3rem;}
+.tz{padding:10px 12px;border-radius:12px;display:grid;gap:6px;justify-items:center;color:#fff;} .tz.zS{background:var(--souk);} .tz.zM{background:var(--medina);} .tz.intent-mock{background:var(--riv-soft);color:var(--ink);border:2px solid var(--riv);} .tz em{font-style:normal;font-size:.78rem;opacity:.9;} .tz div{display:flex;gap:6px;}
+.coinmock{display:inline-flex;align-items:center;justify-content:center;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FBE3A0,#C98A0C);color:#4A3002;font-family:var(--f-kufi);font-weight:700;font-size:1rem !important;} .coinmock.riv{background:radial-gradient(circle at 35% 30%,#7FD8B6,#1C7756);color:#EAF7F1;}
+.tuto-nav{display:flex;gap:10px;} .tuto-nav .primary{flex:1;margin:0;} .tuto-nav .ghost{width:auto;}
+.mod-s:empty{display:none;}
+
+/* --- animations de captures --- */
+.sc{position:relative;} .sc.you{padding-right:58px;} .sc.riv{padding-left:58px;}
+.pile{position:absolute;top:50%;width:34px;height:48px;margin-top:-24px;display:block;}
+.sc.you .pile{right:10px;} .sc.riv .pile{left:10px;}
+.pile i{position:absolute;inset:0;border-radius:6px;border:1.5px solid var(--surface);box-shadow:0 1px 0 rgba(0,0,0,.25);}
+.sc.you .pile i{background:var(--you);} .sc.riv .pile i{background:var(--riv);}
+.sc.you .pile i:nth-child(1){transform:translate(-4px,4px);opacity:.5;} .sc.you .pile i:nth-child(2){transform:translate(-2px,2px);opacity:.75;}
+.sc.riv .pile i:nth-child(1){transform:translate(4px,4px);opacity:.5;} .sc.riv .pile i:nth-child(2){transform:translate(2px,2px);opacity:.75;}
+.pile b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--f-kufi);font-size:1.1rem;color:#fff;z-index:1;text-shadow:0 1px 2px rgba(0,0,0,.35);}
+.ghost-layer{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden;}
+.gcard{position:fixed;margin:0;will-change:transform,opacity;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));}
+.gcard .card{margin:0;}
+.float{position:fixed;font-family:var(--f-kufi);font-weight:700;font-size:1.25rem;color:var(--ink);background:var(--surface);padding:3px 12px;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,.28);white-space:nowrap;opacity:0;}
+.float.gain{color:var(--you);border:1.5px solid var(--you);}
+
+/* --- types de cartes --- */
+.fxlegend{margin:14px 0 6px;} .fxlegend h2{margin-bottom:2px;}
+.fxrow{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line);}
+.fxrow p,.fxoffer p{margin:.15em 0 0;font-size:.84rem;color:var(--muted);} .fxrow .price{font-size:.8rem;font-weight:700;color:var(--muted);white-space:nowrap;}
+.fxdot{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--surface);border:2px solid currentColor;vertical-align:middle;margin-right:6px;} .fxdot svg{width:13px;height:13px;} .fxdot svg *{fill:currentColor;}
+.fxdot.fx-oros{color:#B07D0B;} .fxdot.fx-copas{color:#A8322D;} .fxdot.fx-espadas{color:#3C5A8A;} .fxdot.fx-bastos{color:#7A5A3A;}
+.fxrow .fxdot{margin-right:0;}
+.sheet h3{font-size:.95rem;margin:14px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+
+/* --- journal de manche --- */
+.journal{margin:6px 0 10px;font-size:.92rem;} .jsec{margin:12px 0;} .jsec h3,.jturn h3{font-size:.95rem;margin:10px 0 4px;color:var(--ink);}
+.jturn{padding:9px 0 6px;border-top:1px solid var(--line);} .jmoves{margin:4px 0;line-height:1.5;font-size:.9rem;}
+.jmoves .you{font-weight:600;color:var(--you);} .jmoves .riv{font-weight:600;color:var(--riv);}
+.jev{margin:4px 0 4px 16px;font-size:.84rem;color:var(--muted);list-style:disc;} .jev li{margin:2px 0;}
+.jpile{font-size:.82rem;color:var(--muted);margin:2px 0;}
+.jlist{list-style:none;padding:0;margin:6px 0;display:grid;gap:3px;} .jp{font-size:.88rem;padding:3px 8px;border-radius:8px;background:var(--surface);} .jp b{display:inline-block;min-width:2.4em;font-family:var(--f-kufi);}
+.jp.you{border-left:3px solid var(--you);} .jp.riv{border-left:3px solid var(--riv);}
+.jsum{width:100%;border-collapse:collapse;font-size:.86rem;margin:6px 0;} .jsum th,.jsum td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right;} .jsum th[scope=row]{text-align:left;font-weight:500;}
+.jtot{font-size:.95rem;margin:10px 0 0;} .jtot .you{color:var(--you);} .jtot .riv{color:var(--riv);}
+.jdetails{margin:12px 0;padding:10px 12px;border-radius:12px;background:var(--surface);} .jdetails summary{cursor:pointer;font-weight:600;}
+.jsheet .sheet-in{max-height:86vh;overflow-y:auto;}
+
+/* --- écran de manche : zones cliquables (sobre et pèlerin) --- */
+button.zone{display:block;width:100%;text-align:left;font:inherit;border:0;cursor:pointer;position:relative;transition:transform .12s ease,box-shadow .12s ease;}
+button.zone.target:hover,button.zone.target:focus-visible{transform:translateY(-2px);box-shadow:0 0 0 3px #fff inset,0 6px 16px rgba(0,0,0,.25);outline:none;}
+.zone .zgo{float:right;font-family:var(--f-text,inherit);font-size:.72rem;font-weight:600;opacity:.92;border:1px solid rgba(255,255,255,.7);border-radius:999px;padding:1px 8px;}
+.zsum{display:flex;flex-direction:column;gap:2px;margin-top:8px;padding-top:6px;border-top:1px dashed rgba(255,255,255,.45);font-size:.8rem;color:#fff;}
+.zsum .zprev{font-weight:600;} .zsum .zprev.riv{opacity:.85;font-weight:500;}
+.zsum .pv-delta,.zsum .pv-ev,.zsum .pv-ord,.zsum .pv-branch,.zsum .pv-bar,.zsum .pv-ex{display:block;color:#fff;}
+button.zone .card{pointer-events:none;}
+.sober .tip,.sober .rules,.sober .faint.rsv{display:none;}
+.sober .zone .empty{display:none;} .sober .bdesc{display:none;} .sober .arsenal>p.faint{display:none;} .sober .exch>p.faint{display:none;}
+.sober .caravan .lab{font-size:.78rem;}
+.last.compact{font-size:.86rem;font-weight:600;} .last.compact{font-family:var(--f-text,inherit);font-style:normal;}
+@media (min-width:600px){ #app{padding-top:28px;} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ===== Wach?! — La Route du Sel · moteur v2 (règles v6 · modules Échanges et Baroud) =====
+const VALUES=[1,2,3,4,5,6,7,10,11,12];
+const NEXT={1:2,2:3,3:4,4:5,5:6,6:7,7:10,10:11,11:12,12:null};
+const SUITS=['B','C','E','D'];
+// Types de cartes : chaque couleur espagnole porte un effet, choisi à la construction du deck ; une carte ordinaire est « neutre » (couleur 'N')
+const FX={
+  oros:{name:'Oros',suit:'D',role:'Doré',text:'Compte double dans votre pile.'},
+  copas:{name:'Copas',suit:'C',role:'Cris',text:'Une Ronda ou une Tringa qui l\u2019utilise rapporte 1 point de plus, hors plafond.'},
+  espadas:{name:'Espadas',suit:'E',role:'Tranchant',text:'Sans carte identique sur le plateau, elle capture la valeur voisine (au-dessus, sinon en dessous).'},
+  bastos:{name:'Bastos',suit:'B',role:'Garde',text:'Posée en Médina, le rival ne peut pas la prendre.'},
+};
+const FX_ORDER=['oros','copas','espadas','bastos'];
+const FX_PRICE={oros:4,copas:4,espadas:6,bastos:3};
+const REFRESH=[3,5,7], TURNS=8, MOUL=3, DECK_MIN=8, DECK_MAX=16, ARSENAL_MAX=4, POWDER=3;
+function mulberry(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function shuffle(arr,r){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+let UID=1;
+function mk(v,s,extra){ const c=Object.assign({id:UID++,v,s,gilded:false,sealed:false,fx:null,owner:null},extra||{}); if(c.fx==='oros') c.gilded=true; if(c.fx==='bastos') c.sealed=true; return c; }
+
+// ---------- Les mèches du Baroud, adaptées au solo ----------
+const BAR={
+  ZERBA:{name:'Zerba',fuse:1,text:'Votre carte résout en premier dans sa zone, quelle que soit sa valeur.'},
+  SBER:{name:'Sber',fuse:1,text:'Votre carte résout en dernier dans sa zone, quelle que soit sa valeur.'},
+  AOUD:{name:'Aoud',fuse:0,text:'Jouez une paire en Médina d\u2019un seul coup : la seconde carte capture la première. Une carte de la Réserve compense.'},
+  FAL:{name:'Fal',fuse:1,text:'Vous voyez toute la main du rival jusqu\u2019à la fin du tour suivant.'},
+  QONTRA:{name:'Qontra',fuse:0,text:'Annule la mèche que le rival allume ce tour.'},
+  KHATF:{name:'Khatf',fuse:4,text:'Prenez une carte libre du plateau avant de jouer. Au Souk elle rejoint votre pile ; en Médina elle sort du jeu.'},
+  KELMA:{name:'Kelma',fuse:0,text:'Annoncez une valeur : si vous la capturez à un tour ultérieur, +3 ; sinon le rival marque +2.'},
+  CHERGUI:{name:'Chergui',fuse:2,text:'En fin de tour, toutes les cartes libres d\u2019une zone glissent dans l\u2019autre.'},
+};
+const BAR_ORDER=['ZERBA','SBER','AOUD','FAL','QONTRA','KHATF','KELMA','CHERGUI'];
+
+const STARTERS={
+  volume:{name:'Le colporteur',desc:'Des suites pour enchaîner les captures au Souk.',vals:[2,3,4,5,6,7,3,4,5,10,11,12],bar:['ZERBA','CHERGUI']},
+  annonces:{name:'Le crieur',desc:'Des paires et des brelans pour faire crier la Médina.',vals:[3,3,5,5,5,7,7,10,10,11,11,12],bar:['AOUD','QONTRA']},
+  mixte:{name:'Le négociant',desc:'Un peu de tout, pour lire la table et s\u2019adapter.',vals:[2,3,4,5,5,6,7,7,10,10,11,12],bar:['KELMA','SBER'],corps:['haddad']},
+};
+const FES_STAGES=[
+  {name:'Le souk des épices',rival:'Le marchand d\u2019épices',vals:[1,1,2,2,3,4,5,5,6,7,11,12],rule:null,ai:'naif',bar:[],intro:'Un débutant : il ne joue qu\u2019au Souk et ne s\u2019occupe pas de vos cris.'},
+  {name:'Le souk des tisserands',rival:'La tisserande',vals:[6,6,7,10,10,10,10,11,11,12,12,12],rule:null,bar:['ZERBA'],intro:'Elle joue partout, et casse vos Rondas quand elle le peut.'},
+  {name:'Le souk des dinandiers',rival:'Le dinandier',vals:[1,2,3,6,6,7,10,11,11,12,12,12],rule:null,bar:['KELMA','KHATF'],intro:'Petites et grosses valeurs : il enchaîne des deux côtés.'},
+  {name:'La tannerie Chouara',rival:'Maalem Idriss',vals:[1,2,2,3,3,5,5,6,6,7,10,12],rule:'rivalFirst',boss:true,bar:['QONTRA','KHATF'],intro:'Le maître des tanneurs. Dans son souk, il parle toujours en premier.'},
+];
+const STAGES=FES_STAGES;
+const CITIES=[
+  {id:'tanger',name:'Tanger',tag:'La porte du détroit',blurb:'Le port d\u2019où partent les caravanes. On y apprend vite : les marchands sont pressés.'},
+  {id:'fes',name:'Fès',tag:'La ville des tanneries',blurb:'La plus ancienne médina du royaume. Ici, on casse les bases des autres.'},
+  {id:'marrakech',name:'Marrakech',tag:'La ville rouge',blurb:'Sur la grand-place, la foule change les règles.'},
+  {id:'dakhla',name:'Dakhla',tag:'Entre désert et océan',blurb:'Au bout de la route, le Sahara rencontre l\u2019Atlantique. Sur la presqu\u2019île, la lagune donne le sel, et le sable efface tout.'},
+];
+/*ROUTE-BEGIN*/
+const ROUTE_STAGES=[
+  {city:0,name:'Le souk du port',rival:'Le docker',vals:[1,1,2,2,2,4,5,10,10,11,11,12],rule:null,ai:'naif',bar:[],corps:[],intro:'Il décharge ses caisses et ne regarde que le Souk.'},
+  {city:0,name:'Le Petit Socco',rival:'La changeuse',vals:[1,2,5,5,6,7,7,10,10,11,12,12],rule:null,bar:[],corps:[],intro:'Elle compte vite et casse vos bases dès qu’elle en voit une.'},
+  {city:0,name:'La criée du matin',rival:'Le poissonnier',vals:[1,1,2,3,3,4,4,5,10,10,11,12],rule:null,bar:['ZERBA'],corps:[],intro:'Il crie plus fort que les autres : il passe souvent devant.'},
+  {city:0,name:'Le phare du cap Spartel',rival:'Maalem Tarik',vals:[2,2,3,3,3,3,6,6,6,7,10,10],rule:'evenMedina',ai:'ruse',boss:true,bar:['QONTRA'],corps:[],intro:'Le maître du détroit. La marée décide quand la Médina s’ouvre.'},
+  {city:1,name:'Le souk des épices',rival:'Le marchand d’épices',vals:[1,1,3,3,4,4,4,5,6,6,6,7],rule:null,ai:'naif',bar:[],corps:[],intro:'Un débutant : il ne joue qu’au Souk et ne s’occupe pas de vos cris.'},
+  {city:1,name:'Le souk des tisserands',rival:'La tisserande',vals:[1,2,2,3,4,6,7,7,11,11,12,12],rule:null,bar:['ZERBA'],corps:[],intro:'Elle joue partout, et casse vos Rondas quand elle le peut.'},
+  {city:1,name:'Le souk des dinandiers',rival:'Le dinandier',vals:[1,2,2,3,3,3,4,4,6,10,12,12],rule:null,bar:['KELMA','KHATF'],corps:['haddad'],intro:'Le cuivre se travaille en longueur : ses chaînes vont plus loin que les vôtres.'},
+  {city:1,name:'La tannerie Chouara',rival:'Maalem Idriss',vals:[1,2,2,3,5,6,7,7,10,10,11,12],rule:'rivalFirst',ai:'ruse',boss:true,bar:['QONTRA','KHATF'],corps:['dabbagh'],intro:'Le maître des tanneurs. Dans son souk, il parle toujours en premier.'},
+  {city:2,name:'Le souk Semmarine',rival:'La drapière',vals:[1,1,2,2,3,5,5,6,6,10,11,12],rule:null,lead:1,bar:['SBER'],corps:[],intro:'Elle déroule ses étoffes sans jamais perdre le fil de la table.'},
+  {city:2,name:'Le souk des teinturiers',rival:'Le teinturier',vals:[1,1,2,3,3,4,4,5,10,10,11,12],rule:null,bar:['KELMA','ZERBA'],corps:['nejjar'],intro:'Il a les mains rouges et l’œil sur vos paires.'},
+  {city:2,name:'Les conteurs de Jemaa el-Fna',rival:'Le conteur',vals:[1,1,2,3,3,3,4,5,6,7,10,11],rule:'richSouk',lead:1,bar:['AOUD','KHATF'],corps:['ballaghi'],intro:'Un cercle de curieux : le Souk démarre avec six cartes.'},
+  {city:2,name:'La place des charmeurs',rival:'Maalem Brahim',vals:[1,1,1,2,4,5,7,10,11,11,11,12],rule:'cap4',ai:'ruse',boss:true,lead:1,bar:['QONTRA','KHATF','CHERGUI'],corps:['haddad','nejjar'],intro:'Le maître des charmeurs. Votre plafond d’annonces tombe à 4.'},
+  {city:3,name:'Les salines de la lagune',rival:'Le saunier',vals:[1,2,2,3,5,6,7,7,10,10,11,12],rule:null,lead:1,bar:['ZERBA','KELMA'],corps:['attar'],intro:'Il pèse le sel au grain près et compte vos cartes de même.'},
+  {city:3,name:'La grève à marée basse',rival:'Le pêcheur à pied',vals:[1,1,3,3,4,5,5,5,6,6,10,12],rule:'emptySouk',bar:['CHERGUI','AOUD'],corps:['dabbagh'],intro:'La mer s’est retirée : le Souk démarre vide.'},
+  {city:3,name:'Le marché aux huîtres',rival:'L’ostréiculteur',vals:[1,1,2,3,3,3,4,5,6,7,10,11],rule:'noMissa',lead:1,bar:['KHATF','KELMA','ZERBA'],corps:['fakhkhar'],intro:'Les huîtres s’ouvrent en silence : vos Missas ne rapportent rien.'},
+  {city:3,name:'La Dune Blanche',rival:'Maalema Fatouma',vals:[1,1,2,3,3,4,6,6,6,7,10,11],rule:'rivalFirst+evenMedina',ai:'ruse',boss:true,lead:3,bar:['QONTRA','KHATF','AOUD','ZERBA'],corps:['dabbagh','haddad','attar'],intro:'La maîtresse de la dune. Elle parle toujours en premier, et la Médina n’ouvre que les tours pairs.'},
+];
+/*ROUTE-END*/
+function stagesOf(run){ return run&&run.route==='route'?ROUTE_STAGES:FES_STAGES; }
+function stageInfo(run,i){
+  const L=stagesOf(run), def=L[i]; if(!def) return null; const city=def.city!=null?def.city:1;
+  let nth=1; for(let k=i-1;k>=0&&(L[k].city!=null?L[k].city:1)===city;k--) nth++;
+  return {def,city,cityDef:CITIES[city],nth,boss:!!def.boss,firstOfCity:nth===1,last:i===L.length-1,total:L.length};
+}
+const RULES={evenMedina:'La Médina n\u2019ouvre que les tours pairs.',rivalFirst:'Le rival résout toujours avant vous, quelle que soit la valeur.',noMissa:'Vos Missas ne rapportent rien.',cap4:'Votre plafond d\u2019annonces tombe à 4.',emptySouk:'Le Souk démarre vide.',richSouk:'Le Souk démarre avec 6 cartes.'};
+const CORPS={
+  haddad:{name:'Le Haddad',role:'forgeron',text:'Vos chaînes vont jusqu\u2019à 3 marches et franchissent un trou. Chaque chaîne compte une carte de plus dans votre pile.'},
+  attar:{name:'Le 3attar',role:'épicier',text:'Chaque Missa vous rapporte +2 et compte deux cartes de plus dans votre pile.'},
+  ballaghi:{name:'Le Ballaghi',role:'babouchier',text:'Votre première Ronda de chaque manche rapporte 1 point de plus, hors plafond d\u2019annonces.'},
+  dabbagh:{name:'Le Dabbagh',role:'tanneur',text:'Ce que vous capturez en Médina rejoint votre pile au lieu de sortir du jeu.'},
+  nejjar:{name:'Le Nejjar',role:'menuisier',text:'Chaque capture d\u2019au moins 3 cartes au Souk compte deux cartes de plus dans votre pile.'},
+  zelligeur:{name:'Le Zelligeur',role:'mosaïste',text:'Si l\u2019une de vos bases est encore posée en Médina à la fin de la manche, elle rapporte 1 point.'},
+  fakhkhar:{name:'Le Fakhkhar',role:'potier',text:'Vos cartes Oros comptent triple dans votre pile, au lieu de double.'},
+  sakka:{name:'Le Sakka',role:'porteur d\u2019eau',text:'Chaque souk gagné vous rapporte 2 sel de plus.'},
+};
+
+function ruleHas(rule,name){ return !!rule && rule.split('+').includes(name); }
+function hasRule(st,name){ return ruleHas(st&&st.rule,name); }
+function ruleText(rule){ return rule?rule.split('+').map(r=>RULES[r]).filter(Boolean).join(' '):''; }
+function allowedZones(st){ if(hasRule(st,'evenMedina') && st.turn%2===1) return ['S']; return ['S','M']; }
+function remove(arr,c){const i=arr.indexOf(c); if(i>=0) arr.splice(i,1);}
+const PREV=Object.fromEntries(Object.entries(NEXT).filter(([k,x])=>x!=null).map(([k,x])=>[x,+k]));
+function captureSet(zone,v,o){
+  const vis=zone.filter(c=>!(o.forRival && c.sealed && c.owner==='p'));
+  let eq=vis.filter(c=>c.v===v);
+  // Espadas : sans carte identique, la carte capture la valeur voisine (au-dessus, sinon en dessous), puis la chaîne continue
+  if(!eq.length&&o.reach){ for(const nv of [NEXT[v],PREV[v]]){ if(nv!=null){ const t=vis.filter(c=>c.v===nv); if(t.length){ eq=t; v=nv; break; } } } }
+  if(!eq.length) return [];
+  let cap=[...eq],cur=v,steps=0,bridged=false;
+  while(steps<o.steps){
+    const nv=NEXT[cur]; if(nv==null) break;
+    const nx=vis.filter(c=>c.v===nv);
+    if(!nx.length){
+      if(o.bridge && !bridged){const nv2=NEXT[nv]; if(nv2==null) break; const nx2=vis.filter(c=>c.v===nv2); if(!nx2.length) break; bridged=true; cap.push(...nx2); cur=nv2; steps++; continue;}
+      break;
+    }
+    cap.push(...nx); cur=nv; steps++;
+  }
+  return cap;
+}
+// Tous les points passent par addPts : le journal de manche (st.pl) garde l'origine de chaque point
+function addPts(st,side,n,label){ if(!n) return; st.score[side]+=n; if(st.pl) st.pl.push({turn:st.turn,side,n,label}); }
+function ann(st,side,x,label){ let cap=6; if(side==='p'&&hasRule(st,'cap4')) cap-=2; const g=Math.max(0,Math.min(x,cap-st.annM[side])); st.annM[side]+=g; addPts(st,side,g,label||'Annonce'); return g; }
+function lg(st,side,cards){ for(const c of cards) st.caplog.push({side,v:c.v,turn:st.turn}); }
+function cp(st,side,name){ return side==='p'?st.corps.includes(name):!!(st.rcorps&&st.rcorps.includes(name)); }
+function resolveMove(st,side,card,zone){
+  const isP=side==='p', opp=isP?'r':'p', Z=st.zones[zone], ev=[];
+  const HD=cp(st,side,'haddad'), o={steps:HD?3:2, bridge:HD, reach:card.fx==='espadas', forRival:!isP};
+  if(zone==='M'){
+    if(st.parked[side][card.v]){
+      const pairIds=st.parked[side][card.v].map(c=>c.id), gone=[], copasT=card.fx==='copas'||st.parked[side][card.v].some(c=>c.fx==='copas');
+      Z.filter(c=>c.v===card.v && !(o.forRival&&c.sealed&&c.owner==='p')).forEach(c=>{gone.push(c.id); remove(Z,c); if(cp(st,side,'dabbagh')) st.piles[side].push(c); else st.out++;});
+      delete st.parked[side][card.v]; st.out+=3; lg(st,side,[card]);
+      const g=ann(st,side,3,'Tringa : trio en Médina'); if(copasT&&g>0){ addPts(st,side,1,'Copas (Tringa)'); st.corpPts[side]+=1; } ev.push({side,kind:'tringa',v:card.v,pts:g,ids:[...pairIds,...gone,card.id],played:card.id,to:'out'}); return ev;
+    }
+    const cap=captureSet(Z,card.v,o);
+    if(!cap.length){card.owner=side; Z.push(card); ev.push({side,kind:'pose',zone,played:card.id}); return ev;}
+    const mine=cap.filter(c=>c.v===card.v&&c.owner===side);
+    const denied=cap.filter(c=>c.owner===opp).length;
+    cap.forEach(c=>remove(Z,c)); lg(st,side,[...cap,card]);
+    if(mine.length){
+      st.parked[side][card.v]=[mine[0],card];
+      const rest=cap.filter(c=>c!==mine[0]); if(cp(st,side,'dabbagh')) st.piles[side].push(...rest); else rest.forEach(()=>st.out++);
+      const g=ann(st,side,2,'Ronda : paire garée en Médina'); if(cp(st,side,'ballaghi')&&g>0&&st.annM[side]===2){ addPts(st,side,1,'Ballaghi (1re Ronda)'); st.corpPts[side]+=1; }
+      if((card.fx==='copas'||mine[0].fx==='copas')&&g>0){ addPts(st,side,1,'Copas (Ronda)'); st.corpPts[side]+=1; }
+      ev.push({side,kind:'ronda',v:card.v,pts:g,denied,ids:[...cap.map(c=>c.id),card.id],played:card.id,park:[mine[0].id,card.id],to:'park'});
+    } else if(cp(st,side,'dabbagh')){ st.piles[side].push(...cap,card); ev.push({side,kind:'captureM',n:cap.length,denied,kept:true,ids:[...cap.map(c=>c.id),card.id],played:card.id,to:'pile'}); }
+    else { st.out+=cap.length+1; ev.push({side,kind:'captureM',n:cap.length,denied,ids:[...cap.map(c=>c.id),card.id],played:card.id,to:'out'}); }
+    return ev;
+  }
+  const cap=captureSet(Z,card.v,o);
+  if(!cap.length){card.owner=side; Z.push(card); ev.push({side,kind:'pose',zone,played:card.id}); return ev;}
+  cap.forEach(c=>remove(Z,c)); lg(st,side,[...cap,card]);
+  st.piles[side].push(...cap,card);
+  if(cp(st,side,'nejjar')&&cap.length+1>=3) st.bonus[side]+=2;
+  if(cp(st,side,'haddad')&&new Set(cap.map(c=>c.v)).size>=2) st.bonus[side]++;
+  ev.push({side,kind:'captureS',n:cap.length+1,ids:[...cap.map(c=>c.id),card.id],played:card.id,to:'pile'});
+  if(Z.length===0 && !(isP&&hasRule(st,'noMissa'))){const m=cp(st,side,'attar')?2:1; if(cp(st,side,'attar')) st.bonus[side]+=2; addPts(st,side,m,'Missa : zone du Souk vidée'); st.missaPts[side]+=m; ev.push({side,kind:'missa',pts:m});}
+  return ev;
+}
+function clone(st){
+  const map=new Map(); const cc=c=>{if(!map.has(c)) map.set(c,Object.assign({},c)); return map.get(c);};
+  const pk=o=>Object.fromEntries(Object.entries(o).map(([k,v])=>[k,v.map(cc)]));
+  return {...st, zones:{S:st.zones.S.map(cc),M:st.zones.M.map(cc)},
+    piles:{p:st.piles.p.map(cc),r:st.piles.r.map(cc)}, parked:{p:pk(st.parked.p),r:pk(st.parked.r)},
+    hand:{p:st.hand.p.map(cc),r:st.hand.r.map(cc)}, draw:{p:st.draw.p.map(cc),r:st.draw.r.map(cc)}, reserve:{p:st.reserve.p.map(cc),r:st.reserve.r.map(cc)},
+    score:{...st.score}, annM:{...st.annM}, bonus:{...(st.bonus||{p:0,r:0})}, corps:[...st.corps], rcorps:[...(st.rcorps||[])],
+    bar:{hand:{p:[...st.bar.hand.p],r:[...st.bar.hand.r]},pot:st.bar.pot,kelma:{p:st.bar.kelma.p?{...st.bar.kelma.p}:null,r:st.bar.kelma.r?{...st.bar.kelma.r}:null}},
+    caplog:st.caplog.map(e=>({...e})), xp:{...st.xp}, spent:{...st.spent}, corpPts:{...st.corpPts}, missaPts:{...st.missaPts}, pl:(st.pl||[]).map(x=>({...x})), hist:(st.hist||[]).map(x=>({...x})), __map:map};
+}
+function coinFor(st){ return mulberry((st.coinSeed||1)+st.turn*7919)()<0.5?'p':'r'; }
+
+// ---------- Mèches : annulation par Qontra, valeurs effectives, ordre ----------
+function barOf(m){ return (m&&m.bar&&m.bar.name)||null; }
+function barEffects(pm,rm){
+  let p=barOf(pm), r=barOf(rm);
+  if(p==='QONTRA'&&r==='QONTRA'){ p=null; r=null; }
+  else if(p==='QONTRA'&&r) r=null;
+  else if(r==='QONTRA'&&p) p=null;
+  return {p,r};
+}
+function effVals(pm,rm,eff){
+  let a=pm.card.v, b=rm.card.v;
+  const zp=eff.p==='ZERBA'?'Z':eff.p==='SBER'?'S':null, zr=eff.r==='ZERBA'?'Z':eff.r==='SBER'?'S':null;
+  if((zp==='Z'&&zr==='S')||(zp==='S'&&zr==='Z')) return [a,b];
+  if(zp) a=zp==='Z'?99:-1;
+  if(zr) b=zr==='Z'?99:-1;
+  return [a,b];
+}
+function isTie(pm,rm,st){
+  if(!pm||!rm||!pm.card||!rm.card||pm.zone!==rm.zone) return false;
+  if(hasRule(st,'rivalFirst')) return false;
+  const [a,b]=effVals(pm,rm,barEffects(pm,rm)); return a===b;
+}
+function order(pm,rm,st){
+  if(!pm||!rm||!pm.card||!rm.card||pm.zone!==rm.zone) return ['p','r'];
+  if(hasRule(st,'rivalFirst')) return ['r','p'];
+  const [a,b]=effVals(pm,rm,barEffects(pm,rm));
+  if(a!==b) return a>b?['p','r']:['r','p'];
+  return (st&&st.coin==='p')?['p','r']:['r','p'];
+}
+function legalBar(st,side,m){
+  const b=m&&m.bar; if(!b||!m.card||!st.mods||!st.mods.bar) return null;
+  const d=BAR[b.name]; if(!d||!st.bar.hand[side].includes(b.name)||st.score[side]<d.fuse) return null;
+  if(b.name==='AOUD'&&(!m.card2||m.card2===m.card||m.card2.v!==m.card.v||m.zone!=='M')) return null;
+  if((b.name==='KELMA'||b.name==='CHERGUI')&&st.turn>=TURNS) return null;
+  if(b.name==='KELMA'&&!VALUES.includes(b.v)) return null;
+  if(b.name==='CHERGUI'&&b.src!=='S'&&b.src!=='M') return null;
+  if(b.name==='KHATF'&&b.target==null) return null;
+  return b;
+}
+function norm(st,side,m){ const o={...m}; o.bar=legalBar(st,side,m); if(!o.bar||o.bar.name!=='AOUD') o.card2=null; return o; }
+function doKhatf(st,side,m){
+  const id=m.bar.target; let z=null,c=null;
+  for(const zz of ['S','M']){ const f=st.zones[zz].find(x=>x.id===id); if(f){z=zz;c=f;} }
+  if(!c||(side==='r'&&c.sealed&&c.owner==='p')) return [{kind:'khatfMiss',side}];
+  remove(st.zones[z],c);
+  if(z==='S') st.piles[side].push(c); else st.out++;
+  return [{kind:'khatf',side,zone:z,v:c.v,ids:[c.id],to:z==='S'?'pile':'out'}];
+}
+function chergui(st,side,src){
+  const dst=src==='S'?'M':'S'; const moved=st.zones[src]; st.zones[src]=[];
+  moved.forEach(c=>{c.owner=null;}); st.zones[dst].push(...moved);
+  return {kind:'chergui',side,from:src,n:moved.length};
+}
+function runExchange(st,F,S,fCard,P,sCard){
+  const v=fCard.v, want=side=>side==='r'?true:!!P.escalate, spare=side=>st.hand[side].find(c=>c.v===v);
+  const cries=[{side:S,cry:'Bouahd',pts:1}]; let lead=S, pts=1; const drops={p:0,r:0};
+  if(want(F)){ const c=spare(F); if(c){ remove(st.hand[F],c); drops[F]++; cries.push({side:F,cry:'Btlata',pts:3}); lead=F; pts=3;
+    if(want(S)){ const d=spare(S); if(d){ remove(st.hand[S],d); drops[S]++; cries.push({side:S,cry:'Bkhmsa',pts:5}); lead=S; pts=5; } } } }
+  remove(st.zones.M,fCard); st.out+=2+drops.p+drops.r; addPts(st,lead,pts,pts>=5?'Échange : Bkhmsa':pts>=3?'Échange : Btlata':'Échange : Bouahd'); st.xp[lead]+=pts;
+  const comp={p:0,r:0};
+  for(const side of ['p','r']) for(let k=0;k<drops[side];k++){ const c=st.reserve[side].shift(); if(c){ st.hand[side].push(c); comp[side]++; } }
+  return [{kind:'exchange',cries,lead,pts,drops,comp,v,ids:[fCard.id,...(sCard?[sCard.id]:[])],played:sCard?sCard.id:null,first:F,to:'out'}];
+}
+function moveRec(m){ if(!m||!m.card) return {pass:true}; return {v:m.card.v,zone:m.zone,bar:m.bar?m.bar.name:null,v2:m.card2?m.card2.v:null,esc:!!m.escalate}; }
+function playTurn(st,pm0,rm0){
+  const P=norm(st,'p',pm0), R=norm(st,'r',rm0), ev=[], eff=barEffects(P,R), turn0=st.turn, pb={p:pileValue(st,'p'),r:pileValue(st,'r')};
+  for(const [side,m] of [['p',P],['r',R]]){
+    if(m.card) remove(st.hand[side],m.card);
+    if(m.bar&&m.bar.name==='AOUD'&&eff[side]!=='AOUD'){ m.card2=null; }   // Aoud annulé : la seconde carte reste en main, la première se pose seule
+    else if(m.card2) remove(st.hand[side],m.card2);
+    if(m.bar){ const d=BAR[m.bar.name]; addPts(st,side,-d.fuse,`Mèche ${BAR[m.bar.name].name} : poudre payée`); st.spent[side]+=d.fuse; st.bar.pot+=d.fuse; remove(st.bar.hand[side],m.bar.name); ev.push({kind:'bar',side,name:m.bar.name,cancelled:eff[side]===null}); }
+  }
+  for(const [side,m] of [['p',P],['r',R]]){
+    if(eff[side]==='KELMA'){ st.bar.kelma[side]={v:m.bar.v,turn:st.turn}; ev.push({kind:'kelma',side,v:m.bar.v}); }
+    if(eff[side]==='FAL'&&side==='p'){ st.falUntil=st.turn+1; ev.push({kind:'fal',side}); }
+  }
+  const ord=order(P,R,st);
+  const exch=!!(st.mods&&st.mods.ech)&&P.card&&R.card&&P.zone==='M'&&R.zone==='M'&&!P.card2&&!R.card2&&P.card.v===R.card.v;
+  let exchangeNow=false, first=null;
+  for(let i=0;i<2;i++){
+    const s=ord[i], m=s==='p'?P:R;
+    if(i===1&&exchangeNow){ ev.push(...runExchange(st,ord[0],s,first.card,P,m.card)); continue; }
+    if(eff[s]==='KHATF') ev.push(...doKhatf(st,s,m));
+    if(m.card){
+      if(eff[s]==='AOUD'){
+        ev.push({kind:'aoud',side:s,v:m.card.v}); ev.push(...resolveMove(st,s,m.card,'M')); ev.push(...resolveMove(st,s,m.card2,'M'));
+        const c=st.reserve[s].shift(); if(c) st.hand[s].push(c);
+      } else ev.push(...resolveMove(st,s,m.card,m.zone));
+    }
+    if(i===0&&exch&&m.card&&st.zones.M.includes(m.card)){ exchangeNow=true; first=m; }
+  }
+  for(const s of ['p','r']) if(eff[s]==='CHERGUI'){ ev.push(chergui(st,s,(s==='p'?P:R).bar.src)); }
+  if(st.hist) st.hist.push({turn:turn0,p:moveRec(P),r:moveRec(R),ev,pile:{p:pileValue(st,'p')-pb.p,r:pileValue(st,'r')-pb.r}});
+  return {ord,ev};
+}
+function pileValue(st,side){ const g=(st.corps&&cp(st,side,'fakhkhar'))?3:2; return st.piles[side].reduce((a,c)=>a+(c.gilded?g:1),0)+((st.bonus&&st.bonus[side])||0); }
+function bases(st,side){ return st.zones.M.filter(c=>c.owner===side).length; }
+// Aperçu exact : on joue le tour complet sur une copie
+function preview(st,pm,rm,coin){
+  const c=clone(st); if(coin) c.coin=coin;
+  const mapc=(x,side)=>x?(c.hand[side].find(y=>y.id===x.id)||c.__map.get(x)||x):null;
+  const P={...pm,card:mapc(pm.card,'p'),card2:mapc(pm.card2,'p')}, R={...rm,card:mapc(rm.card,'r'),card2:mapc(rm.card2,'r')};
+  const before={ps:c.score.p,rs:c.score.r,pp:pileValue(c,'p'),rp:pileValue(c,'r'),bp:bases(c,'p'),br:bases(c,'r')};
+  const res=playTurn(c,P,R);
+  return {ev:res.ev,ord:res.ord,dps:c.score.p-before.ps,drs:c.score.r-before.rs,dpp:pileValue(c,'p')-before.pp,drp:pileValue(c,'r')-before.rp,
+          dbp:bases(c,'p')-before.bp,dbr:bases(c,'r')-before.br,state:c};
+}
+// ---------- Rival : glouton, déterministe, décide AVANT vous et annonce son coup (carte, zone, mèche) ----------
+function rivalBarChoice(st,best){
+  const A=st.bar.hand.r; if(!st.mods.bar||!A.length) return null;
+  const sc=st.score.r, t=st.turn, has=n=>A.includes(n)&&sc>=BAR[n].fuse, hv=v=>st.hand.r.filter(c=>c.v===v);
+  if(has('AOUD')&&st.reserve.r.length&&st.annM.r<=4&&allowedZones(st).includes('M')){
+    const vals=[...new Set(st.hand.r.map(c=>c.v))].filter(v=>hv(v).length>=2&&!st.parked.r[v]).sort((a,b)=>b-a);
+    if(vals.length){ const [a,b]=hv(vals[0]); return {bar:{name:'AOUD'},card:a,card2:b,zone:'M'}; }
+  }
+  if(has('KELMA')&&t<=TURNS-2&&!st.bar.kelma.r){
+    const pairs=[...new Set(st.hand.r.map(c=>c.v))].filter(v=>hv(v).length>=2).sort((a,b)=>b-a);
+    const souk=st.zones.S.map(c=>c.v).filter(v=>hv(v).length>=1);
+    const v=pairs.length?pairs[0]:souk[0]; if(v!=null) return {bar:{name:'KELMA',v}};
+  }
+  if(has('KHATF')){
+    const base=st.zones.M.filter(c=>c.owner==='p'&&!c.sealed).sort((a,b)=>a.id-b.id)[0];
+    if(base&&t<=TURNS-2) return {bar:{name:'KHATF',target:base.id}};
+    if(t>=TURNS-2&&st.zones.S.length&&Math.abs(pileValue(st,'p')-pileValue(st,'r'))<=2) return {bar:{name:'KHATF',target:st.zones.S[0].id}};
+  }
+  if(has('CHERGUI')&&t<=TURNS-1){
+    const mo=bases(st,'p'), mm=bases(st,'r');
+    if(mo-mm>=2) return {bar:{name:'CHERGUI',src:'M'}};
+    if(st.zones.S.length>=3&&pileValue(st,'p')-pileValue(st,'r')>=2) return {bar:{name:'CHERGUI',src:'S'}};
+  }
+  const caps=captureSet(st.zones[best.zone],best.card.v,{steps:2,forRival:true}).length>0;
+  if(has('ZERBA')&&caps&&best.card.v<=5) return {bar:{name:'ZERBA'}};
+  if(has('SBER')&&best.zone==='M'&&!caps&&hv(best.card.v).length>=2) return {bar:{name:'SBER'}};
+  if(has('QONTRA')&&t>=2&&t<TURNS&&st.bar.hand.p.some(n=>BAR[n].fuse>=1)) return {bar:{name:'QONTRA'}};
+  return null;
+}
+function rivalChoose(st){
+  if(!st.hand.r.length) return {card:null,zone:null};
+  if(st.ai==='naif'){
+    let best=null;
+    for(const card of st.hand.r){ const n=captureSet(st.zones.S,card.v,{steps:2,forRival:true}).length;
+      const key=[n,card.v,-card.id]; if(!best||key[0]>best.key[0]||(key[0]===best.key[0]&&(key[1]>best.key[1]||(key[1]===best.key[1]&&key[2]>best.key[2])))) best={card,key}; }
+    return {card:best.card,zone:'S'};
+  }
+  let best=null;
+  const ruse=st.ai==='ruse', VAL=c=>(c.score.r-c.score.p)+MOUL*Math.tanh((pileValue(c,'r')-pileValue(c,'p'))/3)-1.4*bases(c,'p')+0.5*bases(c,'r'), v0=ruse?VAL(st):0;
+  for(const card of st.hand.r) for(const zone of allowedZones(st)){
+    const c=clone(st); const cc=c.hand.r.find(x=>x.id===card.id);
+    const b={rs:c.score.r,rp:c.piles.r.length,pm:c.zones.M.filter(x=>x.owner==='p').length};
+    remove(c.hand.r,cc); resolveMove(c,'r',cc,zone);
+    let s=ruse?(VAL(c)-v0):(c.score.r-b.rs)*3+(c.piles.r.length-b.rp)*1.0+(b.pm-c.zones.M.filter(x=>x.owner==='p').length)*1.6;
+    const placed=c.zones[zone].includes(cc);
+    if(placed&&zone==='M'&&st.hand.r.some(x=>x!==card&&x.v===card.v)) s+=1.4;
+    if(placed&&zone==='S') s-=0.15*card.v/12;
+    if(placed&&zone==='M'&&!st.hand.r.some(x=>x!==card&&x.v===card.v)) s-=0.6;
+    const key=[s,-card.v,-card.id];
+    if(!best||key[0]>best.key[0]+1e-9||(Math.abs(key[0]-best.key[0])<1e-9&&(key[1]>best.key[1]||(key[1]===best.key[1]&&key[2]>best.key[2])))) best={card,zone,key};
+  }
+  const out={card:best.card,zone:best.zone};
+  const bc=rivalBarChoice(st,best);
+  if(bc){ out.bar=bc.bar; if(bc.card2){ out.card=bc.card; out.card2=bc.card2; out.zone='M'; } }
+  return out;
+}
+function newManche(run,stageIdx){
+  const stg=stagesOf(run)[stageIdx], r=mulberry(run.seed*31+stageIdx*7919+run.attempt*104729), mods=run.mods||{ech:false,bar:false};
+  const pdeck=shuffle(run.deck.map(t=>mk(t.v,t.s,{fx:t.fx||null,gilded:!!t.gilded,sealed:!!t.sealed,tpl:t.id})),r);
+  const rdeck=shuffle(stg.vals.map(v=>mk(v,'N')),r);
+  const table=[]; const pool=shuffle(VALUES.flatMap(v=>[v,v]),r);
+  const nt=ruleHas(stg.rule,'emptySouk')?0:ruleHas(stg.rule,'richSouk')?6:4;
+  for(let i=0;i<nt;i++) table.push(mk(pool[i],'N'));
+  const hp=pdeck.splice(0,4), hr=rdeck.splice(0,4), dp=pdeck.splice(0,6), dr=rdeck.splice(0,6);
+  const st={stage:stageIdx,rule:stg.rule,ai:stg.ai||'glouton',turn:1,corps:[...run.corps],rcorps:[...(stg.corps||[])],mods:{...mods},
+    zones:{S:table,M:[]},piles:{p:[],r:[]},parked:{p:{},r:{}},annM:{p:0,r:0},score:{p:mods.bar?POWDER:0,r:(mods.bar?POWDER:0)+(stg.lead||0)},lead:stg.lead||0,pl:[...(mods.bar?[{turn:0,side:'p',n:POWDER,label:'Poudre de départ'},{turn:0,side:'r',n:POWDER,label:'Poudre de départ'}]:[]),...(stg.lead?[{turn:0,side:'r',n:stg.lead,label:'Avance du rival'}]:[])],hist:[],bonus:{p:0,r:0},out:0,
+    hand:{p:hp,r:hr},draw:{p:dp,r:dr},reserve:{p:pdeck,r:rdeck},
+    bar:{hand:{p:mods.bar?[...(run.bar||[])]:[],r:mods.bar?[...(stg.bar||[])]:[]},pot:0,kelma:{p:null,r:null}},
+    caplog:[],xp:{p:0,r:0},spent:{p:0,r:0},corpPts:{p:0,r:0},missaPts:{p:0,r:0},falUntil:0,log:[],over:false};
+  st.coinSeed=run.seed*53+stageIdx*1013+run.attempt*7907; st.coin=coinFor(st);
+  st.intent=rivalChoose(st);
+  return st;
+}
+function advance(st){
+  st.turn++;
+  if(st.turn>TURNS){ st.over=true; finish(st); return; }
+  if(REFRESH.includes(st.turn)) for(const s of ['p','r']) st.hand[s].push(...st.draw[s].splice(0,2));
+  st.coin=coinFor(st);
+  st.intent=rivalChoose(st);
+}
+function finish(st){
+  st.kelmaRes={};
+  for(const side of ['p','r']){ const k=st.bar.kelma[side]; if(!k) continue;
+    const held=st.caplog.some(e=>e.side===side&&e.v===k.v&&e.turn>k.turn);
+    if(held) addPts(st,side,3,`Kelma tenue : ${k.v} capturé`); else addPts(st,side==='p'?'r':'p',2,`Kelma rompue : ${k.v} jamais capturé`);
+    st.kelmaRes[side]={v:k.v,held}; }
+  for(const sd of ['p','r']) if(cp(st,sd,'zelligeur')&&bases(st,sd)>0){ addPts(st,sd,1,'Zelligeur (base survivante)'); st.corpPts[sd]+=1; }
+  const pv=pileValue(st,'p'), rv=pileValue(st,'r');
+  st.moul=pv>rv?'p':rv>pv?'r':null; if(st.moul) addPts(st,st.moul,MOUL,'Moul Souk : plus grosse pile');
+  st.potWinner=null;
+  if(st.mods.bar&&st.bar.pot>0){ const l=st.score.p>st.score.r?'p':st.score.r>st.score.p?'r':null; if(l){ addPts(st,l,st.bar.pot,'Poudrière : au meneur'); st.potWinner=l; } }
+  st.win=st.score.p>st.score.r;
+}
+// ---------- Économie du marché ----------
+const DUP_MAX=3;
+const PRICES={thin:3,dup:8,gild:4,seal:3,corp:6,bar:5,unbar:2,uncorp:3,add:4,swap:6};
+function solde(st){ return 4+Math.min(4,Math.max(0,st.score.p-st.score.r-1))+(st.corps.includes('sakka')?2:0); }
+function marketOffers(run,stageIdx){
+  const r=mulberry(run.seed*977+stageIdx*131);
+  const free=Object.keys(CORPS).filter(k=>!run.corps.includes(k));
+  const bars=(run.mods&&run.mods.bar)?shuffle(BAR_ORDER.filter(k=>!(run.bar||[]).includes(k)),r).slice(0,2):[];
+  return {corps:shuffle(free,r).slice(0,2),bars,reward:rewardOffers(run,stageIdx)};
+}
+// ---------- Gestion du deck : regroupement et statistiques ----------
+function groupDeck(deck){
+  const m=new Map();
+  for(const c of deck){ const k=c.v+'|'+(c.fx||'n'); if(!m.has(k)) m.set(k,{v:c.v,fx:c.fx||null,gilded:c.fx==='oros'||!!c.gilded,sealed:c.fx==='bastos'||!!c.sealed,count:0,ids:[]}); const g=m.get(k); g.count++; g.ids.push(c.id); }
+  return [...m.values()].sort((a,b)=>a.v-b.v||FX_ORDER.indexOf(a.fx)-FX_ORDER.indexOf(b.fx));
+}
+function deckStats(deck){
+  const cnt={}; deck.forEach(c=>cnt[c.v]=(cnt[c.v]||0)+1);
+  let best=0,run=0; for(const v of VALUES){ if(cnt[v]){ run++; best=Math.max(best,run);} else run=0; }
+  return {size:deck.length,counts:cnt,distinct:VALUES.filter(v=>cnt[v]).length,pairs:VALUES.filter(v=>cnt[v]>=2).length,trios:VALUES.filter(v=>cnt[v]>=3).length,
+    high:deck.filter(c=>c.v>=10).length,low:deck.filter(c=>c.v<=4).length,longestRun:best,reserve:Math.max(0,deck.length-10),
+    gilded:deck.filter(c=>c.gilded).length,sealed:deck.filter(c=>c.sealed).length,
+    fx:Object.fromEntries(FX_ORDER.map(k=>[k,deck.filter(c=>c.fx===k).length])),typed:deck.filter(c=>c.fx).length};
+}
+function deckStatus(st,deck){
+  const live=new Set([...st.hand.p,...st.draw.p,...st.reserve.p].map(c=>c.tpl)), inHand=new Set(st.hand.p.map(c=>c.tpl));
+  return {hand:deck.filter(t=>inHand.has(t.id)),played:deck.filter(t=>!live.has(t.id)),upcoming:st.draw.p.length+st.reserve.p.length};
+}
+// ---------- Nouvelle valeur : ajouter ou remplacer par une carte absente du deck ----------
+function dupWhy(deck,v){ if(deck.length>=DECK_MAX) return 'Le deck est plein ('+DECK_MAX+' cartes).'; if(deck.filter(c=>c.v===v).length>=DUP_MAX) return 'Déjà '+DUP_MAX+' exemplaires de cette valeur.'; return ''; }
+function buyDup(run,cardId,newId){
+  const c=run.deck.find(x=>x.id===cardId); if(!c||run.sel<PRICES.dup||dupWhy(run.deck,c.v)) return false;
+  run.deck.push({id:newId,v:c.v,s:'N',fx:null}); run.sel-=PRICES.dup; return true;
+}
+function consecrateWhy(run,card,fx){ if(!FX[fx]) return 'Type inconnu.'; if(!card) return 'Carte inconnue.'; if(card.fx===fx) return 'Cette carte est déjà de ce type.'; if(run.sel<FX_PRICE[fx]) return 'Il vous faut '+FX_PRICE[fx]+' sel.'; return ''; }
+function consecrate(run,cardId,fx){ const c=run.deck.find(x=>x.id===cardId); if(consecrateWhy(run,c,fx)) return false; c.fx=fx; c.s=FX[fx].suit; run.sel-=FX_PRICE[fx]; return true; }
+function migrateDeck(run){ for(const c of run.deck){ if(c.fx===undefined){ c.fx=c.gilded?'oros':c.sealed?'bastos':null; } c.s=c.fx?FX[c.fx].suit:'N'; delete c.gilded; delete c.sealed; } return run; }
+function absentValues(deck){ const have=new Set(deck.map(c=>c.v)); return VALUES.filter(v=>!have.has(v)); }
+function deckWith(deck,op){
+  if(op.mode==='add') return [...deck,{id:-1,v:op.v,s:'N',fx:null}];
+  return deck.map(c=>c.id===op.target?{id:-1,v:op.v,s:'N',fx:null}:c);
+}
+function buyNew(run,v,mode,target,newId){
+  const price=mode==='swap'?PRICES.swap:PRICES.add;
+  if(!absentValues(run.deck).includes(v)||run.sel<price) return false;
+  if(mode==='add'){ if(run.deck.length>=DECK_MAX) return false; run.deck.push({id:newId,v,s:'N',fx:null}); }
+  else { const i=run.deck.findIndex(c=>c.id===target); if(i<0) return false; run.deck[i]={id:newId,v,s:'N',fx:null}; }
+  run.sel-=price; return true;
+}
+// ---------- Voyage : création, défaite (baraka), trophée du Maalem ----------
+function newRun(o){
+  const key=o.starter||'mixte', st=STARTERS[key], mods=o.mods||{ech:false,bar:false}, mode=o.mode||'caravanier';
+  return {seed:o.seed||1,attempt:0,retries:0,stage:0,sel:3,corps:[...(st.corps||[])],mods:{ech:!!mods.ech,bar:!!mods.bar},route:o.route||'route',mode,starter:key,
+    baraka:mode==='caravanier'?3:0,bar:mods.bar?[...st.bar]:[],deck:st.vals.map((v,i)=>({id:1000+i,v,s:'N',fx:null})),inManche:false,wins:0,losses:0,rewardFor:-1};
+}
+function defeatOutcome(run){
+  if(run.mode==='pelerin') return {retry:true,cost:0};
+  if(run.mode==='caravanier'&&run.baraka>0) return {retry:true,cost:1};
+  return {retry:false,cost:0};
+}
+// ---------- Conversion sel → baraka (mode Caravanier uniquement) ----------
+const BARAKA_PRICE=15, BARAKA_MAX=5;
+function barakaWhy(run){
+  if(run.mode==='pelerin') return 'Entraînement : les relances sont illimitées.';
+  if(run.mode==='maalem') return 'Le mode Maalem ne propose aucune relance.';
+  if(run.baraka>=BARAKA_MAX) return 'Vous avez déjà '+BARAKA_MAX+' baraka.';
+  if(run.sel<BARAKA_PRICE) return 'Il vous faut '+BARAKA_PRICE+' sel.';
+  return '';
+}
+function buyBaraka(run){ if(barakaWhy(run)) return false; run.sel-=BARAKA_PRICE; run.baraka++; return true; }
+function takeRetry(run){ const o=defeatOutcome(run); if(!o.retry) return false; run.baraka-=o.cost; run.attempt++; run.retries++; return true; }
+function rewardOffers(run,stageIdx){
+  const def=stagesOf(run)[stageIdx]; if(!def||!def.boss) return null;
+  const r=mulberry(run.seed*409+stageIdx*17), opts=[{k:'sel',n:8}];
+  if(run.corps.length<3) shuffle(Object.keys(CORPS).filter(k=>!run.corps.includes(k)),r).slice(0,2).forEach(c=>opts.push({k:'corp',v:c}));
+  const bars=BAR_ORDER.filter(k=>!run.bar.includes(k));
+  if(run.mods.bar&&run.bar.length<ARSENAL_MAX&&bars.length) opts.push({k:'bar',v:shuffle(bars,r)[0]});
+  return opts;
+}
+function takeReward(run,opt){
+  if(opt.k==='sel') run.sel+=opt.n;
+  else if(opt.k==='corp'&&run.corps.length<3&&!run.corps.includes(opt.v)) run.corps.push(opt.v);
+  else if(opt.k==='bar'&&run.bar.length<ARSENAL_MAX&&!run.bar.includes(opt.v)) run.bar.push(opt.v);
+  else return false;
+  return true;
+}
+function rivalSpare(st){ const it=st.intent; if(!it||!it.card) return 0; return st.hand.r.filter(c=>c.v===it.card.v&&c!==it.card&&c!==it.card2).length; }
+function rivalUnseen(st){ const cnt={}; for(const c of [...st.hand.r,...st.draw.r,...st.reserve.r]) cnt[c.v]=(cnt[c.v]||0)+1; return cnt; }
+
+// ===== Interface — La Route du Sel v2 =====
+const SUIT_SVG={
+  B:'<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="5" y="1" width="2" height="10" rx="1"/></svg>',
+  C:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2h7c0 2.6-1.4 4.2-2.6 4.6V9h1.6v1.5H3.5V9h1.6V6.6C3.9 6.2 2.5 4.6 2.5 2z"/></svg>',
+  E:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M5.3 1h1.4v6.5H5.3zM3 7.5h6V9H3zM5.4 9h1.2v2H5.4z"/></svg>',
+  D:'<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/></svg>',
+};
+const SUIT_NAME={B:'Bâtons',C:'Coupes',E:'Épées',D:'Deniers'};
+SUIT_SVG.N='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.6l4 4.4-4 4.4-4-4.4z"/></svg>';
+const ZONE={S:'Souk',M:'Médina'}, ZONE_AT={S:'au Souk',M:'en Médina'};
+const G={mode:'caravanier',daily:false,tuto:null,saved:null,copied:false,settings:{sound:true,hints:true,anim:true,tutoSeen:false},stats:{runs:0,wins:0,stagesWon:0,best:0},screen:'title',starter:'mixte',seed:Math.floor(100000+Math.random()*899999),mods:{ech:false,bar:false},run:null,m:null,
+  sel:null,sel2:null,barSel:null,escalate:false,last:null,offers:null,sheet:null,stack:null,nv:null,confirm:null,rules:false,msg:null,pending:null};
+
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function cardHTML(c,o={}){
+  const fx=c.fx||null, F=fx&&FX[fx]?FX[fx]:null;
+  const cls=['card',o.small?'sm':'',o.selected?'sel':'',F?'fx-'+fx:'neutral',o.pairable?'pairable':'',o.dim?'dim':'',c.owner&&o.owner?('own-'+c.owner):''].filter(Boolean).join(' ');
+  const tag=o.action?'button':(o.inert?'span':'div');
+  const attrs=o.action?` type="button" data-act="${o.action}" data-id="${o.id!=null?o.id:c.id}"${o.extra||''} aria-pressed="${!!o.selected}"`:'';
+  const label=`${c.v}${F?', type '+F.name+' ('+F.role.toLowerCase()+')':', neutre'}`;
+  return `<${tag} class="${cls}"${attrs}${o.cid?` data-cid="${c.id}"`:''} aria-label="${label}"><span class="v">${c.v}</span><span class="s">${SUIT_SVG[F?F.suit:'N']}</span></${tag}>`;
+}
+function backs(n){return Array.from({length:Math.max(0,n)},()=>'<span class="back" aria-hidden="true"></span>').join('');}
+function who(s){return s==='p'?'Vous':'Le rival';}
+function cries(e){ return e.cries.map(c=>`${c.cry} ! (${who(c.side).toLowerCase()})`).join(' → '); }
+function evText(e){
+  const W=who(e.side), me=e.side==='p';
+  switch(e.kind){
+    case 'captureS': return `${W} ${me?'ramassez':'ramasse'} ${e.n} carte${e.n>1?'s':''} au Souk`;
+    case 'missa': return `Missa ! ${me?'Vous marquez':'Il marque'} +${e.pts}`;
+    case 'ronda': return `Ronda ! +${e.pts}${e.denied?` — et ${e.denied} base adverse cassée`:''}`;
+    case 'tringa': return `Tringa ! +${e.pts}`;
+    case 'captureM': return e.denied?`${W} ${me?'cassez':'casse'} ${e.denied} base${e.denied>1?'s':''} en Médina`:`${W} ${me?'capturez':'capture'} en Médina${e.kept?' (gardé par le Dabbagh)':' (hors jeu)'}`;
+    case 'pose': return `${W} ${me?'posez':'pose'} ${ZONE_AT[e.zone]}`;
+    case 'exchange': { const last=e.cries[e.cries.length-1]; const comp=(e.comp.p+e.comp.r)?` · ${e.comp.p+e.comp.r} carte${e.comp.p+e.comp.r>1?'s':''} de la Réserve compense${e.comp.p+e.comp.r>1?'nt':''}`:''; return `Échange — ${cries(e)} : ${who(e.lead)} ${e.lead==='p'?'marquez':'marque'} +${e.pts}${comp}`; }
+    case 'bar': return `${W} ${me?'allumez':'allume'} ${BAR[e.name].name}${e.cancelled?' — annulée par Qontra':''}`;
+    case 'kelma': return `Kelma : ${me?'vous annoncez':'il annonce'} la valeur ${e.v}`;
+    case 'khatf': return `Khatf : ${me?'vous prenez':'il prend'} un ${e.v} ${ZONE_AT[e.zone]}${e.zone==='S'?' (dans sa pile)':' (hors jeu)'}`;
+    case 'khatfMiss': return `Khatf : la cible a disparu`;
+    case 'aoud': return `Aoud : paire de ${e.v} jouée d\u2019un coup`;
+    case 'chergui': return `Chergui : ${e.n} carte${e.n>1?'s':''} glisse${e.n>1?'nt':''} ${e.from==='S'?'du Souk vers la Médina':'de la Médina vers le Souk'}`;
+    case 'fal': return `Fal : la main du rival est révélée`;
+  }
+  return '';
+}
+function hist(counts,max){
+  return `<div class="hist" role="img" aria-label="Répartition des valeurs">${VALUES.map(v=>{const n=counts[v]||0;return `<span class="hb"><i style="height:${n?Math.max(8,Math.round(n/max*46)):0}px"></i><b>${v}</b><em>${n||''}</em></span>`;}).join('')}</div>`;
+}
+function countsOf(vals){const c={};vals.forEach(v=>c[v]=(c[v]||0)+1);return c;}
+function chips(counts){ return VALUES.filter(v=>counts[v]).map(v=>`<span class="mc"><b>${v}</b>${counts[v]>1?`<i>×${counts[v]}</i>`:''}</span>`).join(''); }
+function barChip(n){ return `<span class="bchip sm" title="${esc(BAR[n].text)}"><b>${BAR[n].name}</b><span class="fz">${BAR[n].fuse}</span></span>`; }
+// ---------- v3 : route, sauvegarde, statistiques, sons, conseils ----------
+const LS_KEY='wach.route.v3';
+function store(){ try{ const raw=localStorage.getItem(LS_KEY); return raw?(JSON.parse(raw)||{}):{}; }catch(e){ return {}; } }
+function storeSet(o){ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); }catch(e){} }
+const RESUMABLE=['travel','intro','game','result','reward','market'];
+function persist(){
+  const d=store(); d.settings=G.settings; d.stats=G.stats;
+  d.save=(G.run&&RESUMABLE.includes(G.screen))?{run:G.run,screen:G.screen==='game'?'intro':G.screen,offers:G.offers||null}:null;
+  storeSet(d);
+}
+const MODES={
+  pelerin:{name:'Pèlerin',desc:'Entraînement : défaites illimitées, on retente le souk autant de fois qu\u2019on le veut.'},
+  caravanier:{name:'Caravanier',desc:'Trois baraka : chaque défaite en consomme une pour retenter le souk avec une nouvelle donne. Au marché, le sel s\u2019achète en baraka.'},
+  maalem:{name:'Maalem',desc:'Aucun filet : la première défaite met fin au voyage.'},
+};
+function modeBadge(r){ return r.mode==='pelerin'?'Pèlerin':r.mode==='maalem'?'Maalem':`Baraka ${r.baraka}`; }
+function curStages(){ return stagesOf(G.run); }
+function stageDef(i){ return curStages()[i]; }
+function stageLabel(i){ const f=stageInfo(G.run,i); return f.cityDef.name+' · '+(f.boss?'le Maalem':'souk '+f.nth+'/3'); }
+function dailySeed(){ const d=new Date(); return d.getUTCFullYear()*10000+(d.getUTCMonth()+1)*100+d.getUTCDate(); }
+function dailyLabel(){ try{ return new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}); }catch(e){ return ''; } }
+function shareText(r,won){
+  const total=stagesOf(r).length;
+  return `La Route du Sel — ${won?'voyage accompli':'voyage interrompu'} · ${r.wins}/${total} souks · ${MODES[r.mode].name}${r.mods.ech?' · Échanges':''}${r.mods.bar?' · Baroud':''} · graine ${r.seed}`;
+}
+function endManche(){
+  const m=G.m, r=G.run;
+  r.result={win:m.win,gain:m.win?solde(m):0,ps:m.score.p,rs:m.score.r,stage:m.stage};
+  if(!m.win) r.losses++;
+  G.screen='result'; Sfx.play(m.win?'win':'lose'); persist();
+}
+// Sons : petits effets synthétisés (WebAudio), jamais de musique ; coupés par défaut si le navigateur les refuse
+const Sfx=(function(){
+  let ctx=null;
+  function c(){ if(ctx===null){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ ctx=false; } } return ctx; }
+  function tone(f,t0,d,type,v){ const x=c(); if(!x) return; const o=x.createOscillator(), g=x.createGain(), t=x.currentTime+t0;
+    o.type=type||'sine'; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v||0.05,t+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g); g.connect(x.destination); o.start(t); o.stop(t+d+0.03); }
+  const P={
+    tap:()=>tone(520,0,0.05,'triangle',0.03),
+    card:()=>{ tone(220,0,0.07,'square',0.03); tone(330,0.035,0.06,'triangle',0.03); },
+    coin:()=>{ for(let i=0;i<7;i++) tone(1300+i*45,i*0.11,0.05,'sine',0.035); },
+    cry:()=>{ tone(660,0,0.1,'square',0.035); tone(880,0.1,0.2,'square',0.035); },
+    bar:()=>{ tone(180,0,0.25,'sawtooth',0.04); tone(90,0,0.3,'square',0.03); },
+    buy:()=>{ tone(784,0,0.07,'triangle',0.05); tone(1175,0.07,0.13,'triangle',0.05); },
+    win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,i*0.11,0.24,'triangle',0.06)),
+    lose:()=>[392,330,262].forEach((f,i)=>tone(f,i*0.17,0.3,'sawtooth',0.04)),
+  };
+  return {play(n){ if(!G.settings||!G.settings.sound) return; const f=P[n]; if(f){ try{ f(); }catch(e){} } }};
+})();
+// Conseil du tour : une ligne, déterminée par l'état de la manche
+function hintFor(m,sel){
+  const it=m.intent; if(!it||!it.card) return '';
+  if(m.turn===1&&!sel&&!G.barSel) return 'Le rival a annoncé sa carte. Touchez une des vôtres : l\u2019aperçu montre le résultat exact dans chaque zone.';
+  if(sel){ const tie=allowedZones(m).some(z=>isTie({card:sel,zone:z},it,m)); if(tie) return 'Même rang que le rival dans la même zone : une pièce décidera qui résout d\u2019abord. L\u2019aperçu montre les deux issues.'; }
+  if(it.bar&&m.bar.hand.p.includes('QONTRA')) return `Le rival allume ${BAR[it.bar.name].name} : votre Qontra peut l\u2019annuler.`;
+  if(m.mods.ech&&it.zone==='M'&&rivalSpare(m)>0) return `Il garde ${rivalSpare(m)} autre${rivalSpare(m)>1?'s':''} ${it.card.v} : en cas d\u2019échange, il escaladera.`;
+  if(m.turn===TURNS) return 'Dernier tour : le Moul Souk (+'+MOUL+') se joue sur la taille des piles, et la Médina peut encore faire la différence.';
+  if(m.turn>=6&&Math.abs(pileValue(m,'p')-pileValue(m,'r'))<=1) return 'Les piles sont serrées : chaque carte prise au Souk peut faire basculer le Moul Souk.';
+  return '';
+}
+
+// ---------- Animations de captures ----------
+// Principe : le moteur a déjà résolu le tour ; on rejoue visuellement ce qui s'est passé à partir
+// d'une photographie des positions prise AVANT le rendu, avec des « fantômes » de cartes dans un calque.
+const Anim=(function(){
+  let busy=false, skipFlag=false, layer=null, live=[], hidden=[];
+  const KINDS=['captureS','captureM','ronda','tringa','pose','khatf','exchange','missa'];
+  function enabled(){
+    try{
+      if(!G.settings||!G.settings.anim) return false;
+      if(typeof document==='undefined'||typeof document.createElement!=='function'||!document.body) return false;
+      if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+      return typeof Element!=='undefined'&&typeof Element.prototype.animate==='function';
+    }catch(e){ return false; }
+  }
+  function snap(){
+    if(!enabled()) return null;
+    const rects=new Map(), html=new Map(), piles={}, zone={};
+    document.querySelectorAll('[data-cid]').forEach(el=>{
+      const id=+el.getAttribute('data-cid'); if(rects.has(id)) return;
+      const r=el.getBoundingClientRect(); if(r.width>0){ rects.set(id,r); html.set(id,el.outerHTML); } });
+    ['p','r'].forEach(s=>{ const el=document.getElementById('pile-'+s); if(el){ const b=el.querySelector('b'); piles[s]={n:b?b.textContent:''}; } });
+    ['S','M'].forEach(z=>{ const el=document.getElementById('zone-'+z); if(el) zone[z]=el.getBoundingClientRect(); });
+    return {rects,html,piles,zone};
+  }
+  function willPlay(s,ev){ return !!s&&ev.some(e=>KINDS.includes(e.kind)); }
+  function queue(s,ev){ if(s&&ev&&ev.length) G.anim={snap:s,ev}; }
+  function ensureLayer(){ if(!layer||!layer.parentNode){ layer=document.createElement('div'); layer.className='ghost-layer'; layer.setAttribute('aria-hidden','true'); document.body.appendChild(layer); } return layer; }
+  function ghost(id,S){
+    const h=S.html.get(id), r=S.rects.get(id); if(!h||!r) return null;
+    const d=document.createElement('div'); d.className='gcard'; d.innerHTML=h;
+    const c=d.firstElementChild; if(c){ c.removeAttribute('data-act'); c.removeAttribute('data-cid'); c.removeAttribute('id'); c.classList.remove('sel','pairable','dim'); c.style.transform='none'; c.style.margin='0'; }
+    d.style.left=r.left+'px'; d.style.top=r.top+'px'; d.style.width=r.width+'px'; d.style.height=r.height+'px';
+    ensureLayer().appendChild(d); return d;
+  }
+  function center(r){ return {x:r.left+r.width/2,y:r.top+r.height/2}; }
+  function cur(d){ return center(d.getBoundingClientRect()); }
+  function run1(el,frames,opt){
+    const a=el.animate(frames,Object.assign({fill:'forwards',easing:'cubic-bezier(.3,.1,.2,1)'},opt,{duration:skipFlag?0:(opt.duration||300),delay:skipFlag?0:(opt.delay||0)}));
+    live.push(a); return a.finished.catch(()=>{});
+  }
+  function move(d,to,o){
+    o=o||{}; const c=cur(d), dx=to.x-c.x, dy=to.y-c.y, s=o.scale==null?1:o.scale;
+    const end={transform:`translate(${dx}px,${dy}px) scale(${s})`,opacity:o.fade?0.15:1};
+    const frames=o.arc?[{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${dx*0.5}px,${dy*0.5-o.arc}px) scale(${1+(1-s)*0.12})`,opacity:1,offset:0.5},end]:[{transform:'translate(0,0) scale(1)',opacity:1},end];
+    const p=run1(d,frames,o); if(!o.commit) return p;
+    // fige la position atteinte dans le style puis annule l'animation : sinon une animation suivante (pulsation)
+    // remplacerait la translation et la carte reviendrait brutalement à son point de départ
+    const w=parseFloat(d.style.width)||0, h=parseFloat(d.style.height)||0, anim=live[live.length-1];
+    return p.then(()=>{ if(!d.parentNode) return; d.style.left=(to.x-w/2)+'px'; d.style.top=(to.y-h/2)+'px'; try{ anim.cancel(); }catch(e){} });
+  }
+  function pulse(d){ return run1(d,[{transform:'scale(1)',filter:'brightness(1)'},{transform:'scale(1.14)',filter:'brightness(1.3)'},{transform:'scale(1)',filter:'brightness(1)'}],{duration:190}); }
+  function dissolve(d,delay){ return run1(d,[{opacity:1,transform:'translateY(0) scale(1)'},{opacity:0,transform:'translateY(-22px) scale(.72)'}],{duration:380,delay:delay||0}); }
+  function floatText(text,rect,cls){
+    if(!rect) return Promise.resolve(); const f=document.createElement('div'); f.className='float '+(cls||''); f.textContent=text;
+    const c=center(rect); f.style.left=c.x+'px'; f.style.top=c.y+'px'; ensureLayer().appendChild(f);
+    return run1(f,[{opacity:0,transform:'translate(-50%,-30%) scale(.8)'},{opacity:1,transform:'translate(-50%,-90%) scale(1.05)',offset:0.25},{opacity:0,transform:'translate(-50%,-190%) scale(1)'}],{duration:900}).then(()=>{ if(f.parentNode) f.parentNode.removeChild(f); });
+  }
+  function rectOf(sel){ const el=document.querySelector(sel); return el?el.getBoundingClientRect():null; }
+  function bump(side,add,shown){
+    const el=document.getElementById('pile-'+side); if(!el) return; const b=el.querySelector('b');
+    shown[side]=(+shown[side]||0)+add; if(b) b.textContent=shown[side];
+    run1(el,[{transform:'scale(1)'},{transform:'scale(1.28)'},{transform:'scale(1)'}],{duration:260,fill:'none'});
+  }
+  async function beatIds(e,S,shown,ids,pileRect){
+    const ghosts=[]; for(const id of ids){ const g=ghost(id,S); if(g){ g.__id=id; ghosts.push(g); } }
+    const played=ghosts.find(g=>g.__id===e.played), others=ghosts.filter(g=>g!==played);
+    switch(e.kind){
+      case 'pose': {
+        const t=document.querySelector('[data-cid="'+e.played+'"]'); const g=played||ghost(e.played,S);
+        if(!g||!t){ if(t) t.style.visibility=''; return; }
+        const tr=t.getBoundingClientRect(); await move(g,center(tr),{duration:340,arc:26});
+        t.style.visibility=''; if(g.parentNode) g.parentNode.removeChild(g); return; }
+      case 'captureS': case 'captureM': case 'ronda': case 'tringa': case 'khatf': case 'exchange': {
+        try{
+        if(!ghosts.length){ if(e.to==='pile'&&e.side) bump(e.side,(e.ids||[]).length,shown); return; }
+        // 1) la carte jouée glisse sur la zone de capture
+        const anchor=others[0]||played; if(played&&others.length) await move(played,cur(anchor),{duration:240,scale:1.06,commit:true});
+        if(skipFlag) return;
+        // 2) le choc : toutes les cartes concernées pulsent
+        await Promise.all(ghosts.map(g=>pulse(g)));
+        if(skipFlag) return;
+        // 3) destination
+        if(e.to==='pile'&&pileRect){
+          await Promise.all(ghosts.map((g,i)=>move(g,center(pileRect),{duration:460,delay:i*55,scale:0.3,fade:true,arc:42})));
+          bump(e.side,ghosts.length,shown);
+        } else if(e.to==='park'){
+          const corner=rectOf('.ronda-corner'); const park=new Set(e.park||[]);
+          const keep=ghosts.filter(g=>park.has(g.__id)), drop=ghosts.filter(g=>!park.has(g.__id));
+          const p1=keep.length&&corner?Promise.all(keep.map((g,i)=>move(g,center(corner),{duration:420,delay:i*60,scale:0.55,fade:true,arc:24}))):Promise.resolve();
+          const p2=Promise.all(drop.map((g,i)=>dissolve(g,i*40)));
+          if(corner) floatText('Ronda +'+(e.pts||0),corner,'gain');
+          await Promise.all([p1,p2]);
+        } else {
+          await Promise.all(ghosts.map((g,i)=>dissolve(g,i*40)));
+          if(e.kind==='tringa'){ const c=rectOf('.ronda-corner'); if(c) floatText('Tringa +'+(e.pts||0),c,'gain'); }
+        }
+        } finally { ghosts.forEach(g=>{ if(g.parentNode) g.parentNode.removeChild(g); }); }
+        return; }
+      case 'missa': { const z=S.zone.S; if(z) await floatText('Missa +'+(e.pts||1),z,'gain'); return; }
+    }
+  }
+  function cleanup(finalPile){
+    if(layer&&layer.parentNode) layer.parentNode.removeChild(layer); layer=null; live=[];
+    hidden.forEach(t=>{ try{ t.style.visibility=''; }catch(e){} }); hidden=[];
+    ['p','r'].forEach(s=>{ const el=document.getElementById('pile-'+s); if(el&&finalPile[s]!=null){ const b=el.querySelector('b'); if(b) b.textContent=finalPile[s]; } });
+  }
+  async function play(){
+    const A=G.anim; G.anim=null; if(!A) return;
+    busy=true; skipFlag=false; ensureLayer();
+    const finalPile={}, shown={};
+    ['p','r'].forEach(s=>{ const el=document.getElementById('pile-'+s); if(el){ const b=el.querySelector('b'); finalPile[s]=b?b.textContent:''; if(A.snap.piles[s]&&b){ b.textContent=A.snap.piles[s].n; shown[s]=A.snap.piles[s].n; } } });
+    for(const e of A.ev){ if(e.kind==='pose'&&e.played!=null){ const t=document.querySelector('[data-cid="'+e.played+'"]'); if(t){ t.style.visibility='hidden'; hidden.push(t); } } }
+    try{ for(const e of A.ev){ if(skipFlag) break; await beatIds(e,A.snap,shown,e.ids||(e.played!=null?[e.played]:[]),e.side?rectOf('#pile-'+e.side):null); } }catch(err){}
+    cleanup(finalPile); busy=false;
+    if(G.endPending){ G.endPending=false; endManche(); if(typeof render==='function') render(); }
+  }
+  function skip(){ skipFlag=true; live.forEach(a=>{ try{ a.finish(); }catch(e){} }); }
+  return {enabled,snap,willPlay,queue,play,skip,busy:()=>busy};
+})();
+
+function pileHTML(side,n){ return `<span class="pile" id="pile-${side}" role="img" aria-label="Pile de capture, valeur ${n}"><i></i><i></i><i></i><b>${n}</b></span>`; }
+function rulesBlock(){
+  return `<details class="rules"${G.rules?' open':''}><summary data-act="rules">Comment jouer</summary>
+  <ul>
+    <li>Chaque tour, le rival <b>annonce</b> sa carte, sa zone et sa mèche éventuelle. Vous choisissez la vôtre ; l'aperçu montre le résultat exact avant de jouer.</li>
+    <li>Une carte capture <b>toutes les cartes de même valeur</b> de sa zone, puis les valeurs <b>juste au-dessus</b>, deux marches au plus (1→2→…→7→10→11→12).</li>
+    <li><b>Souk</b> : ce que vous ramassez va dans votre pile. Vider le Souk d'un coup : <b>Missa, +1</b>.</li>
+    <li><b>Médina</b> : ce qu'on capture sort du jeu. Prendre votre propre carte avec sa jumelle : <b>Ronda, +2</b> ; la troisième : <b>Tringa, +3</b>. Plafond : 6.</li>
+    <li>Dans une même zone, la plus haute carte résout en premier. Même rang dans la même zone : <b>pile ou face</b> au moment de résoudre ; l'aperçu montre les deux issues.</li>
+    <li>La caravane ne montre que les cartes que vous recevrez <b>au prochain tour</b>. Un deck de plus de 10 cartes garde le surplus en <b>Réserve</b>.</li>
+    <li>Après 8 tours, la plus grosse pile gagne le <b>Moul Souk, +${MOUL}</b>.</li>
+    <li><b>Module Échanges</b> : même rang en Médina, la carte du premier restant libre : <b>Bouahd +1</b> pour le second. Le premier peut <b>Btlata +3</b> en abattant un 3ᵉ exemplaire, le second <b>Bkhmsa +5</b> avec un 4ᵉ. Seul le dernier mot compte ; chaque carte abattue est compensée depuis la Réserve.</li>
+    <li><b>Module Baroud</b> : une mèche par tour, payée en poudre. Chaque mèche ne sert qu'une fois par souk. La poudre dépensée va dans la Poudrière, que le meneur ramasse à la fin.</li>
+  </ul></details>`;
+}
+
+// ---------- ÉCRANS ----------
+function rivalDeckBlock(s){
+  return `<div class="rdeck"><span class="lab">Son deck</span><div class="mcs">${chips(countsOf(s.vals))}</div>${G.mods.bar&&s.bar&&s.bar.length?`<span class="lab">Ses mèches</span><div class="bchips">${s.bar.map(barChip).join('')}</div>`:''}</div>`;
+}
+function corpChip(k){const c=CORPS[k];return `<span class="corp" title="${esc(c.text)}"><b>${esc(c.name)}</b> ${esc(c.text)}</span>`;}
+function scoreBlock(m){
+  const pv=pileValue(m,'p'), rv=pileValue(m,'r');
+  const pow=m.mods.bar?`<div class="pot" title="La poudre dépensée par les deux joueurs : le meneur la ramasse à la fin">Poudrière <b>${m.bar.pot}</b></div>`:'';
+  return `<div class="scores">
+    <div class="sc you"><span class="lab">Vous</span><span class="pts">${m.score.p}</span><span class="sub">annonces ${m.annM.p}/6</span>${pileHTML('p',pv)}</div>
+    <div class="moul ${pv>rv?'you':rv>pv?'riv':''}" title="La plus grosse pile gagnera +${MOUL} en fin de manche">Moul Souk +${MOUL}<br><span>${pv>rv?'pour vous':rv>pv?'pour le rival':'à égalité'}</span></div>
+    <div class="sc riv"><span class="lab">Rival</span><span class="pts">${m.score.r}</span><span class="sub">annonces ${m.annM.r}/6</span>${pileHTML('r',rv)}</div>
+  </div>${pow}`;
+}
+function previewSummary(pv,noOrd,fuse){
+  const own=pv.ev.filter(e=>e.side==='p'&&e.kind!=='bar').map(evText), his=pv.ev.filter(e=>e.side==='r'&&e.kind!=='bar').map(evText);
+  const ex=pv.ev.filter(e=>e.kind==='exchange').map(evText), bars=pv.ev.filter(e=>e.kind==='bar').map(evText);
+  const first=pv.ord[0]==='p'?'Vous résolvez en premier.':'Le rival résout en premier.';
+  return `<span class="pv-delta">Vous ${pv.dps>=0?'+':''}${pv.dps} pt · pile ${pv.dpp>=0?'+':''}${pv.dpp}${fuse?` <i>(dont −${fuse} de poudre)</i>`:''}</span>
+          <span class="pv-delta riv">Rival ${pv.drs>=0?'+':''}${pv.drs} pt · pile ${pv.drp>=0?'+':''}${pv.drp}</span>
+          ${bars.length?`<span class="pv-ev pv-bar">${esc(bars.join(' · '))}</span>`:''}
+          ${ex.length?`<span class="pv-ev pv-ex">${esc(ex.join(' · '))}</span>`:''}
+          <span class="pv-ev">${esc(own.join(' · ')||'—')}</span><span class="pv-ev riv">${esc(his.join(' · ')||'—')}</span>
+          ${noOrd?'':`<span class="pv-ord">${first}</span>`}`;
+}
+// --- mèches du joueur ---
+function freeCards(m){ return [...m.zones.S.map(c=>({c,z:'S'})),...m.zones.M.map(c=>({c,z:'M'}))]; }
+function barDisabled(name){
+  const m=G.m, d=BAR[name], it=m.intent;
+  if(!m.hand.p.length) return 'Plus de carte en main';
+  if(!m.bar.hand.p.includes(name)) return 'Déjà utilisée dans ce souk';
+  if(m.score.p<d.fuse) return `Poudre insuffisante (il faut ${d.fuse})`;
+  if((name==='KELMA'||name==='CHERGUI')&&m.turn>=TURNS) return 'Impossible au dernier tour';
+  if(name==='AOUD'){ if(!allowedZones(m).includes('M')) return 'La Médina est fermée ce tour'; if(!m.hand.p.some(c=>m.hand.p.some(x=>x!==c&&x.v===c.v))) return 'Aucune paire en main'; }
+  if(name==='KHATF'&&!freeCards(m).length) return 'Aucune carte libre sur le plateau';
+  if(name==='QONTRA'&&!(it&&it.bar)) return 'Le rival n\u2019allume aucune mèche ce tour';
+  if(name==='FAL'&&m.turn<=m.falUntil) return 'La main du rival est déjà visible';
+  return '';
+}
+function barReady(){ const b=G.barSel; if(!b) return true; if(b.name==='KHATF') return b.target!=null; if(b.name==='KELMA') return b.v!=null; if(b.name==='CHERGUI') return !!b.src; if(b.name==='AOUD') return !!(G.sel&&G.sel2); return true; }
+function barHint(){ const b=G.barSel; if(!b) return ''; if(b.name==='KHATF'&&b.target==null) return 'Khatf : choisissez la carte à prendre sur le plateau.'; if(b.name==='KELMA'&&b.v==null) return 'Kelma : choisissez la valeur à annoncer.';
+  if(b.name==='CHERGUI'&&!b.src) return 'Chergui : choisissez le sens du glissement.'; if(b.name==='AOUD'&&!(G.sel&&G.sel2)) return 'Aoud : touchez une carte de votre main qui a une jumelle.'; return ''; }
+function barParams(m){
+  const b=G.barSel; if(!b) return '';
+  if(b.name==='KHATF') return `<div class="params"><span class="lab">Cible du Khatf</span><div class="zcards tgt">${freeCards(m).map(({c,z})=>`<span class="tg">${cardHTML(c,{small:true,action:'khatf',selected:b.target===c.id})}<em>${ZONE[z]}</em></span>`).join('')}</div></div>`;
+  if(b.name==='KELMA') return `<div class="params"><span class="lab">Valeur annoncée</span><div class="vals">${VALUES.map(v=>`<button type="button" class="vb ${b.v===v?'on':''}" data-act="kv" data-v="${v}" aria-pressed="${b.v===v}">${v}</button>`).join('')}</div></div>`;
+  if(b.name==='CHERGUI') return `<div class="params"><span class="lab">Sens du glissement</span><div class="two"><button type="button" class="vb wide ${b.src==='S'?'on':''}" data-act="cs" data-src="S" aria-pressed="${b.src==='S'}">Souk → Médina</button><button type="button" class="vb wide ${b.src==='M'?'on':''}" data-act="cs" data-src="M" aria-pressed="${b.src==='M'}">Médina → Souk</button></div></div>`;
+  return '';
+}
+function arsenalBlock(m){
+  if(!m.mods.bar) return '';
+  const names=G.run.bar; if(!names.length) return `<section class="arsenal"><span class="lab">Vous n\u2019avez aucune mèche. Le marché en propose.</span></section>`;
+  const chipsH=names.map(n=>{ const why=barDisabled(n), on=G.barSel&&G.barSel.name===n, used=!m.bar.hand.p.includes(n);
+    return `<button type="button" class="bchip ${on?'on':''} ${used?'used':''}" data-act="bar" data-k="${n}" aria-pressed="${!!on}" ${why&&!on?'disabled':''} title="${esc(why||BAR[n].text)}"><b>${BAR[n].name}</b><span class="fz" aria-label="mèche ${BAR[n].fuse}">${BAR[n].fuse}</span></button>`; }).join('');
+  const sel=G.barSel;
+  return `<section class="arsenal" aria-label="Vos mèches"><span class="lab">Vos mèches · poudre ${m.score.p}</span><div class="bchips">${chipsH}</div>
+    ${sel?`<p class="bdesc"><b>${BAR[sel.name].name}</b> — ${esc(BAR[sel.name].text)}</p>`:'<p class="faint">Une seule mèche par tour. Touchez-en une pour la préparer.</p>'}${barParams(m)}</section>`;
+}
+function buildPm(zone){
+  const m=G.m, card=m.hand.p.find(c=>c.id===G.sel); const pm={card,zone,escalate:G.escalate};
+  if(G.barSel){ pm.bar={...G.barSel}; if(G.barSel.name==='AOUD'){ pm.card2=m.hand.p.find(c=>c.id===G.sel2); pm.zone='M'; } }
+  return pm;
+}
+function exchangeToggle(m,sel){
+  if(!m.mods.ech||!sel) return '';
+  const it=m.intent; if(!it.card||it.zone!=='M'||it.card.v!==sel.v||G.barSel&&G.barSel.name==='AOUD') return '';
+  const mine=m.hand.p.filter(c=>c!==sel&&c.v===sel.v).length, his=rivalSpare(m);
+  return `<div class="exch"><span class="lab">Échange possible si vous posez le ${sel.v} en Médina</span>
+    <p class="faint">Vous gardez ${mine} autre${mine>1?'s':''} ${sel.v} en main · le rival en garde ${his}. Il escalade dès qu\u2019il le peut.</p>
+    ${mine?`<button type="button" class="tog ${G.escalate?'on':''}" data-act="esc" aria-pressed="${G.escalate}">Escalader si possible (Btlata / Bkhmsa)</button>`:'<p class="faint">Pas de 3ᵉ exemplaire en main : vous ne pouvez pas escalader.</p>'}</div>`;
+}
+function intentBlock(m){
+  const s=stageDef(m.stage), it=m.intent;
+  if(!it.card) return `<section class="intent" aria-label="Intention du rival"><div class="intent-txt"><span class="lab">${esc(s.rival)}</span><span class="where">n\u2019a plus de carte</span></div></section>`;
+  const b=it.bar; let extra='';
+  if(b){ if(b.name==='KHATF'){ const t=freeCards(m).find(x=>x.c.id===b.target); extra=t?` — vise le ${t.c.v} ${ZONE_AT[t.z]}`:''; }
+    if(b.name==='KELMA') extra=` — annonce la valeur ${b.v}`; if(b.name==='CHERGUI') extra=` — ${b.src==='S'?'Souk → Médina':'Médina → Souk'}`; if(b.name==='AOUD') extra=' — paire en Médina'; }
+  const sp=(m.mods.ech&&it.zone==='M')?rivalSpare(m):null;
+  return `<section class="intent" aria-label="Intention du rival">
+    <div class="intent-txt"><span class="lab">${esc(s.rival)} va jouer</span><span class="where">${ZONE_AT[it.zone]}</span>
+      ${b?`<span class="bannounce">Allume <b>${BAR[b.name].name}</b> (${BAR[b.name].fuse} de poudre)${esc(extra)}</span>`:''}
+      ${sp!=null?`<span class="spare">${sp?`Il garde ${sp} autre${sp>1?'s':''} ${it.card.v} en main`:`Pas d\u2019autre ${it.card.v} en main`}</span>`:''}
+      ${s.rule?`<span class="rule-mini">${esc(ruleText(s.rule))}</span>`:''}</div>
+    <div class="icards">${cardHTML(it.card,{cid:true})}${it.card2?cardHTML(it.card2,{cid:true}):''}</div>
+    <div class="riv-hand" title="Cartes encore en main du rival">${backs(m.hand.r.length-(it.card2?2:1))}</div>
+  </section>`;
+}
+// ---------- Journal de manche : déroulé complet et points par origine ----------
+function jWho(side){ return side==='p'?'Vous':'Le rival'; }
+function jMove(side,rec){
+  if(!rec||rec.pass) return `${jWho(side)} passe${side==='p'?'z':''}`;
+  const zone=ZONE_AT[rec.zone]||'';
+  const bar=rec.bar?` avec ${BAR[rec.bar].name}`:'';
+  const pair=rec.v2!=null?` (paire de ${rec.v})`:'';
+  const esc2=rec.esc?' — escalade':'';
+  return `${jWho(side)} ${rec.v}${pair} ${zone}${bar}${esc2}`;
+}
+function jTurns(m){
+  const H=m.hist||[], pl=m.pl||[], out=[];
+  const turns=[...new Set(H.map(h=>h.turn))].sort((a,b)=>a-b);
+  for(const t of turns){
+    const h=H.find(x=>x.turn===t);
+    const pts=pl.filter(x=>x.turn===t);
+    const pile=h.pile||{p:0,r:0};
+    out.push({turn:t, moves:[jMove('p',h.p), jMove('r',h.r)], events:h.ev.filter(x=>x.kind!=='pose').map(evText).filter(Boolean),
+      points:pts.map(x=>({side:x.side,n:x.n,label:x.label})), pile});
+  }
+  return out;
+}
+function jSummary(m){
+  const sums={p:new Map(),r:new Map()};
+  for(const x of (m.pl||[])){ const mp=sums[x.side]; mp.set(x.label,(mp.get(x.label)||0)+x.n); }
+  const labels=[...new Set([...sums.p.keys(),...sums.r.keys()])];
+  return labels.map(l=>({label:l,p:sums.p.get(l)||0,r:sums.r.get(l)||0})).filter(x=>x.p||x.r);
+}
+const jSign=n=>(n>0?'+':n<0?'−':'')+Math.abs(n);
+function jPointLines(list){
+  return list.map(x=>`<li class="jp ${x.side==='p'?'you':'riv'}"><b>${jSign(x.n)}</b> <span>${esc(x.side==='p'?'Vous':'Rival')} · ${esc(x.label)}</span></li>`).join('');
+}
+function journalHTML(m){
+  if(!m) return '';
+  const T=jTurns(m), start=(m.pl||[]).filter(x=>x.turn===0), end=(m.pl||[]).filter(x=>x.turn>TURNS);
+  const sec=(title,body)=>body?`<section class="jsec"><h3>${esc(title)}</h3>${body}</section>`:'';
+  const startHTML=start.length?`<ul class="jlist">${jPointLines(start)}</ul>`:'';
+  const turnsHTML=T.map(t=>{
+    const pile=(t.pile.p||t.pile.r)?`<p class="jpile">Pile : vous ${jSign(t.pile.p)} · rival ${jSign(t.pile.r)}</p>`:'';
+    const ev=t.events.length?`<ul class="jev">${t.events.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+    return `<article class="jturn"><h3>Tour ${t.turn}</h3>
+      <p class="jmoves"><span class="you">${esc(t.moves[0])}</span><br><span class="riv">${esc(t.moves[1])}</span></p>${ev}${pile}
+      ${t.points.length?`<ul class="jlist">${jPointLines(t.points)}</ul>`:'<p class="faint">Aucun point ce tour.</p>'}</article>`; }).join('');
+  const endHTML=end.length?`<ul class="jlist">${jPointLines(end)}</ul>`:'<p class="faint">Aucun point.</p>';
+  const S=jSummary(m);
+  const sumHTML=S.length?`<table class="jsum"><thead><tr><th>Origine</th><th>Vous</th><th>Rival</th></tr></thead><tbody>${S.map(x=>`<tr><th scope="row">${esc(x.label)}</th><td>${x.p?jSign(x.p):'—'}</td><td>${x.r?jSign(x.r):'—'}</td></tr>`).join('')}</tbody></table>`:'';
+  const totals=`<p class="jtot">Total : <b class="you">vous ${m.score.p}</b> · <b class="riv">rival ${m.score.r}</b></p>`;
+  return `<div class="journal">${sec('Départ',startHTML)}${turnsHTML}${sec('Fin de manche',endHTML)}${sec('Points par origine',sumHTML)}${totals}</div>`;
+}
+function journalSheet(){
+  const m=G.m;
+  return `<div class="sheet jsheet" role="dialog" aria-modal="true" aria-label="Journal de la manche"><div class="sheet-in">
+    <h2>Journal de la manche</h2><p class="faint">Chaque point est listé avec son origine, tour après tour.</p>
+    ${journalHTML(m)}
+    <button type="button" class="ghost" data-act="closesheet">Fermer</button></div></div>`;
+}
+
+// ---------- Écran de manche : zones cliquables, verbosité selon le mode ----------
+// Pèlerin = initiation (aperçu complet, conseils, règles). Caravanier et Maalem = sobres.
+function isVerbose(){ return !G.run || G.run.mode==='pelerin'; }
+// Points gagnés au dernier tour, en une ligne (version sobre)
+function compactLast(m){
+  const H=m.hist||[]; if(!H.length) return '';
+  const t=Math.max(...H.map(h=>h.turn)), pts=(m.pl||[]).filter(x=>x.turn===t);
+  if(!pts.length) return '';
+  return pts.map(x=>`${x.side==='p'?'Vous':'Rival'} ${x.n>0?'+':''}${x.n} · ${x.label.split(' : ')[0]}`).join(' — ');
+}
+// Une zone : cliquable quand une carte est choisie et qu'on peut la jouer ici
+function zoneBlock(m,z,target,pv,tie){
+  const cards=m.zones[z];
+  const parked=z==='M'?['p','r'].map(s=>Object.entries(m.parked[s]).map(([v])=>`<span class="pair own-${s}" title="Paire garée : ${s==='p'?'la vôtre':'celle du rival'}">${v}·${v}</span>`).join('')).join(''):'';
+  const body=`<h3>${ZONE[z]}${target&&isVerbose()?' <span class="zgo">Jouer ici</span>':''}</h3>
+    <div class="zcards">${cards.length?cards.map(c=>cardHTML(c,{small:true,owner:z==='M',cid:true,inert:target})).join(''):`<p class="empty">${z==='S'?'Vide — le prochain coup ici ne capture rien.':'Vide.'}</p>`}</div>
+    ${z==='M'?`<div class="ronda-corner" aria-label="Coin Ronda">${parked||'<span class="faint">Coin Ronda vide</span>'}</div>`:''}`;
+  if(!target) return `<section class="zone z${z}" id="zone-${z}" aria-label="${ZONE[z]}">${body}</section>`;
+  const title=(G.barSel&&G.barSel.name==='AOUD')?'Jouer la paire en Médina':`Jouer ${ZONE_AT[z]}`;
+  const fuse=G.barSel?BAR[G.barSel.name].fuse:0;
+  let summary;
+  if(isVerbose()){
+    summary=tie?`<span class="pv-ord">Même rang que le rival : pile ou face.</span>${previewSummary(pv.a,true,fuse)}<span class="pv-branch">Pile — le rival d'abord</span>${previewSummary(pv.b,true,0)}`:previewSummary(pv,false,fuse);
+  } else {
+    const d=x=>`${x>=0?'+':''}${x}`;
+    summary=tie?`<span class="zprev">Pièce : Face ${d(pv.a.dps)} · Pile ${d(pv.b.dps)} pt</span>`
+               :`<span class="zprev">Vous ${d(pv.dps)} pt · pile ${d(pv.dpp)}</span><span class="zprev riv">Rival ${d(pv.drs)} pt</span>`;
+  }
+  return `<button type="button" class="zone z${z} target" id="zone-${z}" data-act="play" data-z="${z}" aria-label="${title}">${body}<span class="zsum">${title}${summary}</span></button>`;
+}
+function viewGame(){
+  const m=G.m, s=stageDef(m.stage), it=m.intent, verbose=isVerbose();
+  const sel=G.sel?m.hand.p.find(c=>c.id===G.sel):null, empty=!m.hand.p.length;
+  const zonesOK=(G.barSel&&G.barSel.name==='AOUD')?['M']:allowedZones(m);
+  const ready=!!sel&&barReady();
+  let tips='';
+  if(m.over) tips='<p class="faint">Décompte en cours…</p>';
+  else if(empty) tips=`<button type="button" class="play zS" data-act="pass"><span class="play-t">Passer le tour</span>${verbose?'<span class="pv-ev">Vous n’avez plus de carte en main.</span>':''}</button>`;
+  else if(!sel) { if(verbose) tips=`<p class="faint">${G.barSel&&G.barSel.name==='AOUD'?'Touchez une carte de votre main qui a une jumelle.':'Choisissez une carte, puis touchez le Souk ou la Médina.'}</p>`; }
+  else if(!barReady()) tips=`<p class="hint-warn">${esc(barHint())}</p>`;
+  const boardZone=z=>{
+    if(!ready||!zonesOK.includes(z)) return zoneBlock(m,z,false);
+    const pm=buildPm(z), fuse=G.barSel?BAR[G.barSel.name].fuse:0;
+    if(isTie(pm,it,m)){ return zoneBlock(m,z,true,{a:preview(m,pm,it,'p'),b:preview(m,pm,it,'r')},true); }
+    return zoneBlock(m,z,true,preview(m,pm,it),false);
+  };
+  const nt=m.turn+1, later=[3,5,7].filter(t=>t>nt)[0];
+  const caravan=[3,5,7].includes(nt)&&m.draw.p.length
+    ? `<span class="cv-step">${verbose?'<span class="cv-t">Au prochain tour, vous recevrez</span>':'<span class="cv-t">Prochain tour</span>'}${m.draw.p.slice(0,2).map(c=>cardHTML(c,{small:true})).join('')}</span>`
+    : (verbose?`<span class="faint">${later?`Pas de pioche au prochain tour. La caravane arrive au tour ${later}.`:'Plus de pioche avant la fin de la manche.'}</span>`:'');
+  const unseen=rivalUnseen(m), falOn=m.turn<=m.falUntil;
+  const pairing=G.barSel&&G.barSel.name==='AOUD';
+  const handH=m.hand.p.map(c=>cardHTML(c,{action:'pick',cid:true,selected:c.id===G.sel||c.id===G.sel2,pairable:pairing&&m.hand.p.some(x=>x!==c&&x.v===c.v),dim:pairing&&!m.hand.p.some(x=>x!==c&&x.v===c.v)})).join('');
+  const lastLine=verbose?(G.last?`<section class="last" aria-live="polite"><span class="wach">Wach !</span> ${G.last.map(esc).join(' · ')}</section>`:''):(compactLast(m)?`<section class="last compact" aria-live="polite">${esc(compactLast(m))}</section>`:'');
+  return `<main class="game ${verbose?'verbose':'sober'}">
+    <header class="top"><div><span class="crumb">${esc(stageLabel(m.stage))} · ${esc(s.rival)}${verbose?` · ${esc(modeBadge(G.run))}`:''}</span></div><div class="turn">Tour <b>${Math.min(m.turn,TURNS)}</b>/8</div></header>
+    ${scoreBlock(m)}
+    ${intentBlock(m)}
+    ${verbose&&G.settings.hints&&!m.over&&hintFor(m,sel)?`<p class="tip">${esc(hintFor(m,sel))}</p>`:''}
+    ${(verbose&&m.rcorps&&m.rcorps.length)?`<div class="rcorps"><span class="lab">Corporations du rival</span><div class="corp-row">${m.rcorps.map(corpChip).join('')}</div></div>`:''}
+    ${falOn?`<section class="fal"><span class="lab">Fal — la main du rival</span><div class="zcards">${m.hand.r.map(c=>cardHTML(c,{small:true})).join('')}</div></section>`:''}
+    <details class="unseen"><summary>Ce qu’il reste au rival <span class="faint">(${m.hand.r.length+m.draw.r.length+m.reserve.r.length} cartes)</span></summary><div class="mcs">${chips(unseen)||'<span class="faint">Plus rien.</span>'}</div></details>
+    <div class="board">${boardZone('S')}${boardZone('M')}</div>
+    ${lastLine}
+    ${arsenalBlock(m)}
+    ${exchangeToggle(m,sel)}
+    ${tips?`<section class="actions">${tips}</section>`:''}
+    <section class="hand" aria-label="Votre main">${handH||'<p class="faint">Main vide.</p>'}</section>
+    <section class="caravan" aria-label="Vos prochaines pioches"><span class="lab">La caravane</span>${caravan}${(verbose&&(m.mods.ech||m.mods.bar))?`<span class="faint rsv">Réserve : ${m.reserve.p.length} carte${m.reserve.p.length>1?'s':''}</span>`:''}</section>
+    <button type="button" class="ghost sm" data-act="deckview">Mon deck</button> <button type="button" class="ghost sm" data-act="journal">Journal</button> <button type="button" class="ghost sm" data-act="settings">Réglages</button> ${quitBtn()}
+    ${m.corps.length?`<section class="corp-row">${verbose?m.corps.map(corpChip).join(''):m.corps.map(k=>`<span class="corp"><b>${esc(CORPS[k].name)}</b></span>`).join('')}</section>`:''}
+    ${verbose?rulesBlock():''}
+    ${G.sheet==='deck'?deckSheet():''}${G.sheet==='journal'?journalSheet():''}
+  </main>`;
+}
+
+function tallyRows(m){
+  const kr=m.kelmaRes||{}, row=(lab,a,b)=>`<tr><th scope="row">${lab}</th><td>${a}</td><td>${b}</td></tr>`, rows=[];
+  const kel=s=>{const o=s==='p'?'r':'p'; return (kr[s]&&kr[s].held?3:0)+(kr[o]&&!kr[o].held?2:0);};
+  const pot=s=>m.potWinner===s?m.bar.pot:0, moul=s=>m.moul===s?MOUL:0;
+  const miss=s=>m.missaPts[s];
+  if(m.mods.bar) rows.push(row('Poudre de départ',POWDER,POWDER),row('Mèches payées',m.spent.p?'−'+m.spent.p:'0',m.spent.r?'−'+m.spent.r:'0'));
+  if(m.lead) rows.push(row('Avance du rival','—','+'+m.lead));
+  rows.push(row('Annonces (Ronda, Tringa)',m.annM.p,m.annM.r));
+  if(m.corpPts.p||m.corpPts.r) rows.push(row('Corporations (points)',m.corpPts.p,m.corpPts.r));
+  if(m.mods.ech) rows.push(row('Échanges',m.xp.p,m.xp.r));
+  rows.push(row('Missa',miss('p'),miss('r')));
+  if(m.mods.bar&&(kr.p||kr.r)) rows.push(row('Kelma',(kel('p')?'+'+kel('p'):'0'),(kel('r')?'+'+kel('r'):'0')));
+  rows.push(row('Pile',pileValue(m,'p'),pileValue(m,'r')),row('Moul Souk',m.moul==='p'?'+'+MOUL:'—',m.moul==='r'?'+'+MOUL:'—'));
+  if(m.mods.bar&&m.bar.pot>0) rows.push(row('Poudrière',m.potWinner==='p'?'+'+m.bar.pot:'—',m.potWinner==='r'?'+'+m.bar.pot:'—'));
+  rows.push(row('Total',`<b>${m.score.p}</b>`,`<b>${m.score.r}</b>`));
+  return rows.join('');
+}
+// ---------- GESTION DU DECK ----------
+function deckStatsBlock(deck){
+  const s=deckStats(deck), mx=Math.max(3,...Object.values(s.counts));
+  const tip=s.size<=DECK_MIN?'Deck au minimum : chaque carte pèse lourd, vos meilleures reviennent souvent.':s.size>=DECK_MAX?'Deck plein : plus de Réserve, mais vos cartes clés se diluent.':'';
+  return `<div class="dstats">
+    ${hist(s.counts,mx)}
+    <dl class="dgrid">
+      <div><dt>Taille</dt><dd>${s.size}<span class="faint"> / ${DECK_MIN}–${DECK_MAX}</span></dd></div>
+      <div><dt>Réserve</dt><dd>${s.reserve}<span class="faint"> carte${s.reserve>1?'s':''}</span></dd></div>
+      <div><dt>Paires · brelans</dt><dd>${s.pairs} · ${s.trios}</dd></div>
+      <div><dt>Plus longue suite</dt><dd>${s.longestRun}<span class="faint"> valeurs</span></dd></div>
+      <div><dt>Fortes · faibles</dt><dd>${s.high} · ${s.low}</dd></div>
+      <div><dt>Types</dt><dd>${s.typed}<span class="faint"> / ${s.size}</span></dd></div>
+    </dl>
+    <p class="faint">Chaque manche utilise <b>10 cartes</b> (4 en main, 6 de pioche) ; le reste est votre Réserve, qui compense les cartes abattues (Échanges) et l\u2019Aoud.${tip?' '+esc(tip):''}</p>
+  </div>`;
+}
+function stacksBlock(deck,action){
+  return `<div class="stacks">${groupDeck(deck).map(g=>`<button type="button" class="stack ${g.count>1?'multi':''}" ${action?`data-act="stack" data-k="${g.v}|${g.fx||'n'}"`:'disabled'} aria-label="${g.count} fois ${g.v}${g.fx?', type '+FX[g.fx].name:', neutre'}">
+    ${cardHTML({v:g.v,fx:g.fx})}${g.count>1?`<span class="cnt">×${g.count}</span>`:''}</button>`).join('')}</div>`;
+}
+function deckSheet(){
+  const r=G.run, m=G.m;
+  let body='';
+  if(G.screen==='game'&&m){
+    const ds=deckStatus(m,r.deck), grp=l=>l.length?stacksBlock(l,false):'<p class="faint">Aucune.</p>';
+    body=`<h3 class="sh">En main (${ds.hand.length})</h3>${grp(ds.hand)}
+      <h3 class="sh">Déjà jouées (${ds.played.length})</h3>${grp(ds.played)}
+      <h3 class="sh">À venir (${ds.upcoming})</h3><div class="backs">${backs(ds.upcoming)}</div>
+      <p class="faint">L\u2019ordre et l\u2019identité des cartes à venir restent cachés.</p>`;
+  } else body=deckStatsBlock(r.deck)+stacksBlock(r.deck,false);
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Votre deck"><div class="sheet-in"><h2>Votre deck <span class="faint">(${r.deck.length} cartes)</span></h2>${body}<button type="button" class="ghost" data-act="closesheet">Fermer</button></div></div>`;
+}
+function typesLegend(){
+  return `<div class="fxlegend"><h2>Les quatre types</h2><p class="faint">Consacrez une carte à un type, depuis sa pile : une carte porte un seul type, les autres sont neutres.</p>
+    ${FX_ORDER.map(k=>`<div class="fxrow"><span class="fxdot fx-${k}">${SUIT_SVG[FX[k].suit]}</span><div><b>${FX[k].name}</b> <span class="role">${esc(FX[k].role)}</span><p>${esc(FX[k].text)}</p></div><span class="price">${FX_PRICE[k]} sel</span></div>`).join('')}
+  </div>`;
+}
+function stackSheet(){
+  const r=G.run, [vs,fk]=G.stack.split('|'), v=+vs, cur=fk==='n'?null:fk;
+  const grp=groupDeck(r.deck).find(x=>x.v===v&&(x.fx||null)===cur);
+  if(!grp) return '';
+  const small=r.deck.length<=DECK_MIN;
+  const row=(k,n,t,why,price)=>`<div class="offer"><div><b>${n}</b><p>${t}</p>${why?`<p class="why">${esc(why)}</p>`:''}</div><button type="button" data-act="deckact" data-k="${k}" ${!why&&r.sel>=price?'':'disabled'}>${n} · ${price} sel</button></div>`;
+  const types=FX_ORDER.map(k=>{ const why=consecrateWhy(r,{fx:cur},k); return `<div class="offer fxoffer"><div><span class="fxdot fx-${k}">${SUIT_SVG[FX[k].suit]}</span><b>${FX[k].name}</b> <span class="role">${esc(FX[k].role)}</span><p>${esc(FX[k].text)}</p>${why?`<p class="why">${esc(why)}</p>`:''}</div><button type="button" data-act="deckact" data-k="fx" data-t="${k}" ${why?'disabled':''}>Consacrer · ${FX_PRICE[k]} sel</button></div>`; }).join('');
+  const typeName=cur?` de type ${FX[cur].name}`:' neutre';
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Ce ${v}"><div class="sheet-in">
+    <div class="sh-head">${cardHTML({v,fx:cur})}<div><h2>${grp.count>1?grp.count+' exemplaires du ':'Un '}${v}${typeName}</h2><p class="faint">Vous avez ${r.sel} sel. Chaque action s\u2019applique à un seul exemplaire.</p></div></div>
+    <h3>Consacrer à un type</h3>${types}
+    <h3>Autres actions</h3>
+    ${row('thin','Retirer','Sort cette carte de votre deck.',small?`Le deck est au minimum (${DECK_MIN} cartes).`:'',PRICES.thin)}
+    ${row('dup','Dupliquer','Ajoute un exemplaire neutre, jusqu\u2019à '+DUP_MAX+' exemplaires d\u2019une même valeur. Une manche n\u2019utilise que 10 cartes : au-delà, chaque carte en plus dilue votre deck.',dupWhy(r.deck,v),PRICES.dup)}
+    <button type="button" class="ghost" data-act="closesheet">Fermer</button></div></div>`;
+}
+
+function deltaText(a,b){
+  const parts=[], f=(lab,x,y)=>{ if(x!==y) parts.push(`${lab} ${x} → ${y}`); };
+  f('plus longue suite',a.longestRun,b.longestRun); f('paires',a.pairs,b.pairs); f('brelans',a.trios,b.trios); f('fortes',a.high,b.high); f('faibles',a.low,b.low); f('taille',a.size,b.size);
+  return parts.join(' · ')||'composition équivalente';
+}
+function newValuesBlock(next){
+  const r=G.run, ab=absentValues(r.deck), rc=countsOf(next.vals);
+  const body=ab.length?`<div class="newvals">${ab.map(v=>`<button type="button" class="newv" data-act="newv" data-v="${v}" aria-label="Nouvelle valeur ${v}">${cardHTML({v,s:'B'})}<span class="rv">${rc[v]?'Rival ×'+rc[v]:'Rival : aucun'}</span></button>`).join('')}</div>`:'<p class="faint">Votre deck contient déjà toutes les valeurs.</p>';
+  return `<h2>Nouvelle valeur</h2><p class="faint">${ab.length?`Il manque à votre deck : ${ab.join(', ')}. Ajoutez-en une, ou échangez-la contre une carte existante. Sous chaque carte, ce que le prochain rival en possède.`:'Rien ne manque.'}</p>${body}`;
+}
+function newvSheet(){
+  const r=G.run, v=G.nv, before=deckStats(r.deck), n=r.deck.length, full=n>=DECK_MAX;
+  const addAfter=deckStats(deckWith(r.deck,{mode:'add',v}));
+  const whyAdd=full?`Le deck est plein (${DECK_MAX} cartes).`:(r.sel<PRICES.add?`Il vous faut ${PRICES.add} sel.`:'');
+  const whySwap=r.sel<PRICES.swap?`Il vous faut ${PRICES.swap} sel.`:'';
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Un ${v} pour votre deck"><div class="sheet-in">
+    <div class="sh-head">${cardHTML({v,s:'B'})}<div><h2>Un ${v} pour votre deck</h2><p class="faint">Cette valeur vous manque. Vous avez ${r.sel} sel.</p></div></div>
+    <div class="offer"><div><b>Ajouter</b><p>Le deck passe de ${n} à ${n+1} cartes. Une manche n’en joue que 10 : la nouvelle carte dilue les autres. Surtout utile pour une valeur qui vous manque, ou avec les modules (Réserve).</p><p class="delta">${esc(deltaText(before,addAfter))}</p>${whyAdd?`<p class="why">${esc(whyAdd)}</p>`:''}</div>
+      <button type="button" data-act="newadd" ${whyAdd?'disabled':''}>Ajouter · ${PRICES.add} sel</button></div>
+    <div class="offer"><div><b>Remplacer une carte</b><p>La taille du deck ne change pas : aucune dilution. Vous choisissez ensuite la carte à échanger, avec l’effet sur votre deck.</p>${whySwap?`<p class="why">${esc(whySwap)}</p>`:''}</div>
+      <button type="button" data-act="newswapstart" ${whySwap?'disabled':''}>Remplacer · ${PRICES.swap} sel</button></div>
+    <button type="button" class="ghost" data-act="closesheet">Annuler</button></div></div>`;
+}
+function swapSheet(){
+  const r=G.run, v=G.nv, before=deckStats(r.deck);
+  const rows=groupDeck(r.deck).map(g=>{ const after=deckStats(deckWith(r.deck,{mode:'swap',target:g.ids[0],v})), loss=(g.fx?' Perd son type ('+FX[g.fx].name+').':'');
+    return `<button type="button" class="swaprow" data-act="newswap" data-id="${g.ids[0]}">${cardHTML({v:g.v,fx:g.fx},{small:true})}<span class="sw-t"><b>Remplacer un ${g.v}${g.count>1?` <i>(vous en avez ${g.count})</i>`:''}</b><span class="sw-d">${esc(deltaText(before,after)+'.'+loss)}</span></span></button>`; }).join('');
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Quelle carte remplacer"><div class="sheet-in">
+    <div class="sh-head">${cardHTML({v,s:'B'})}<div><h2>Quelle carte remplacer ?</h2><p class="faint">Un ${v} prend sa place pour ${PRICES.swap} sel. Chaque ligne montre l’effet sur votre deck.</p></div></div>
+    <div class="swaps">${rows}</div>
+    <button type="button" class="ghost" data-act="newback">Retour</button></div></div>`;
+}
+function viewTitle(){
+  const sv=G.saved, st=G.stats;
+  const starters=Object.entries(STARTERS).map(([k,s])=>`
+    <button type="button" class="starter ${G.starter===k?'on':''}" data-act="starter" data-k="${k}" aria-pressed="${G.starter===k}">
+      <span class="st-name">${esc(s.name)}</span><span class="st-desc">${esc(s.desc)}</span>${hist(countsOf(s.vals),4)}
+      ${(s.corps&&s.corps.length)?`<span class="st-bar">${s.corps.map(c=>`<span class="bchip sm" title="${esc(CORPS[c].text)}"><b>${esc(CORPS[c].name)}</b></span>`).join('')}</span>`:''}
+      ${G.mods.bar?`<span class="st-bar">${s.bar.map(barChip).join('')}</span>`:''}
+    </button>`).join('');
+  const mod=(k,name,desc)=>`<button type="button" class="mod ${G.mods[k]?'on':''}" data-act="mod" data-k="${k}" aria-pressed="${G.mods[k]}"><span class="mod-t"><b>${name}</b><span class="mod-s">${G.mods[k]?'activé':'désactivé'}</span></span><span class="mod-d">${desc}</span></button>`;
+  const modes=Object.entries(MODES).map(([k,m])=>`<button type="button" class="mod ${G.mode===k?'on':''}" data-act="mode" data-k="${k}" aria-pressed="${G.mode===k}"><span class="mod-t"><b>${m.name}</b><span class="mod-s">${G.mode===k?'choisi':''}</span></span><span class="mod-d">${m.desc}</span></button>`).join('');
+  let resume='';
+  if(sv){ const rr=sv.run, f=stageInfo(rr,Math.min(rr.stage,stagesOf(rr).length-1));
+    resume=`<section class="resume"><span class="lab">Un voyage vous attend</span><p><b>${esc(f.cityDef.name)}</b> · ${f.boss?'le Maalem':'souk '+f.nth+'/3'} — ${rr.wins} souk${rr.wins>1?'s':''} gagné${rr.wins>1?'s':''}, ${rr.sel} sel, ${esc(modeBadge(rr))}, graine ${rr.seed}.</p><button type="button" class="primary" data-act="resume">Reprendre le voyage</button><p class="faint">On reprend au début de l\u2019épreuve en cours, avec la même donne.</p></section>`; }
+  const stats=st.runs>0?`<p class="faint stats">${st.runs} voyage${st.runs>1?'s':''} · ${st.wins} accompli${st.wins>1?'s':''} · meilleure traversée : ${st.best} souk${st.best>1?'s':''} gagné${st.best>1?'s':''} d\u2019affilée.</p>`:'';
+  return `<main class="title">
+    <h1>La Route du Sel</h1>
+    <p class="lede">De Tanger à Dakhla : quatre villes, seize épreuves. Chaque rival montre la carte qu'il va jouer : à vous de voir plus loin que lui.</p>
+    ${resume}${stats}
+    <h2>Votre deck de départ</h2>
+    <div class="starters">${starters}</div>
+    <h2>Le voyage</h2>
+    <div class="mods">${modes}</div>
+    <h2>Modules <span class="faint">(optionnels)</span></h2>
+    <div class="mods">
+      ${mod('ech','Échanges','Bouahd, Btlata, Bkhmsa : quand les deux joueurs posent le même rang en Médina, une enchère s\u2019ouvre. Il faut des doubles, et une Réserve.')}
+      ${mod('bar','Baroud','Un arsenal de mèches à composer : Zerba, Aoud, Khatf, Kelma… payées en poudre, le rival montre les siennes.')}
+    </div>
+    <div class="seed"><label for="seed">Graine du voyage</label><div class="seedrow"><input id="seed" inputmode="numeric" value="${G.seed}" data-act="seed"/><button type="button" class="ghost sm" data-act="daily">Caravane du jour</button></div>
+      <span class="hint">${G.daily?`Caravane du ${esc(dailyLabel())} : tous les joueurs ont la même graine aujourd\u2019hui.`:'Même graine, même voyage.'}</span></div>
+    <button type="button" class="primary" data-act="start">${sv?'Abandonner le voyage en cours et repartir':'Partir pour Tanger'}</button>
+    <div class="row2"><button type="button" class="ghost sm" data-act="tuto">Didacticiel</button><button type="button" class="ghost sm" data-act="settings">Réglages</button></div>
+    ${rulesBlock()}
+  </main>`;
+}
+function viewTravel(){
+  const r=G.run, f=stageInfo(r,r.stage), L=curStages(), c=f.cityDef, ci=f.city;
+  const stages=L.map((s,i)=>({s,i})).filter(x=>(x.s.city!=null?x.s.city:1)===ci);
+  const dots=CITIES.map((cc,i)=>`<span class="cdot ${i<ci?'done':i===ci?'cur':''}"><i></i><em>${esc(cc.name)}</em></span>`).join('');
+  return `<main class="travel city-${ci}">
+    <p class="crumb">${ci===0?'Le départ':'La caravane arrive'} · ville ${ci+1} sur ${CITIES.length}</p>
+    <h1>${esc(c.name)}</h1><p class="rival-name">${esc(c.tag)}</p><p class="lede">${esc(c.blurb)}</p>
+    <div class="route" role="img" aria-label="La route du sel : ${CITIES.map(x=>x.name).join(', ')}">${dots}</div>
+    <h2>Les quatre épreuves</h2>
+    <ol class="cstages">${stages.map(({s,i})=>`<li class="${s.boss?'boss':''}${i<r.stage?' done':''}"><b>${esc(s.name)}</b><span>${esc(s.rival)}${s.boss?' · le Maalem':''}${s.rule?' · '+esc(ruleText(s.rule)):''}</span></li>`).join('')}</ol>
+    <p class="faint">${esc(modeBadge(r))} · ${r.sel} sel · deck de ${r.deck.length} cartes</p>
+    <button type="button" class="primary" data-act="travelgo">Entrer dans ${esc(c.name)}</button>
+    <button type="button" class="ghost sm" data-act="deckview">Voir mon deck</button> ${quitBtn()}
+    ${G.sheet==='deck'?deckSheet():''}
+  </main>`;
+}
+function viewIntro(){
+  const r=G.run, f=stageInfo(r,r.stage), s=f.def;
+  return `<main class="intro city-${f.city}">
+    <p class="crumb">${esc(f.cityDef.name)} · ${f.boss?'le Maalem':'souk '+f.nth+' sur 3'} · ${esc(modeBadge(r))}</p>
+    <h1>${esc(s.name)}</h1>
+    <p class="rival-name">${esc(s.rival)}</p>
+    <p class="lede">${esc(s.intro)}</p>
+    ${s.rule?`<p class="rule">Règle du lieu : ${esc(ruleText(s.rule))}</p>`:''}
+    ${s.lead?`<p class="rule">Avance du rival : il démarre la manche avec +${s.lead} point${s.lead>1?'s':''}.</p>`:''}
+    ${rivalDeckBlock(s)}
+    ${(s.corps&&s.corps.length)?`<div class="rdeck"><span class="lab">Ses corporations</span><div class="corp-row">${s.corps.map(corpChip).join('')}</div></div>`:''}
+    ${r.corps.length?`<div class="rdeck"><span class="lab">Vos corporations</span><div class="corp-row">${r.corps.map(corpChip).join('')}</div></div>`:''}
+    ${r.mods.bar&&r.bar.length?`<div class="rdeck"><span class="lab">Vos mèches</span><div class="bchips">${r.bar.map(barChip).join('')}</div></div>`:''}
+    <button type="button" class="ghost" data-act="deckview">Voir mon deck (${r.deck.length} cartes)</button> ${quitBtn()}
+    <button type="button" class="primary" data-act="enter">Entrer dans le souk</button>
+    ${G.sheet==='deck'?deckSheet():''}
+  </main>`;
+}
+function viewResult(){
+  const r=G.run, res=r.result, m=(G.m&&G.m.over&&G.m.stage===res.stage)?G.m:null, f=stageInfo(r,res.stage), out=defeatOutcome(r);
+  const title=res.win?(f.boss?'Le maître s\u2019incline':'Vous l\u2019emportez'):'Le rival l\u2019emporte';
+  let actions;
+  if(res.win) actions=`<p class="gain">Vous gagnez <b>${res.gain} sel</b>. Vous en avez désormais ${r.sel+res.gain}.</p><button type="button" class="primary" data-act="cont">${f.last?'Terminer le voyage':f.boss?'Réclamer le trophée':'Aller au marché'}</button>`;
+  else if(out.retry) actions=`<p class="lede">${r.mode==='pelerin'?'Entraînement : vous pouvez retenter autant de fois que vous le voulez.':`Il vous reste <b>${r.baraka} baraka</b> ; en retenter une la consomme.`}</p><button type="button" class="primary" data-act="retry">Retenter ce souk${r.mode==='caravanier'?' (−1 baraka)':''}</button><button type="button" class="ghost" data-act="giveup">Abandonner le voyage</button>`;
+  else if(!res.win && r.mode==='caravanier' && r.sel>=BARAKA_PRICE && r.baraka<BARAKA_MAX) actions=`<p class="lede">Vous n\u2019avez plus de baraka, mais <b>${r.sel} sel</b> en réserve. Une baraka s\u2019achète ${BARAKA_PRICE} sel : elle permet de retenter ce souk.</p><button type="button" class="primary" data-act="buybaraka">Acheter une baraka · ${BARAKA_PRICE} sel</button><button type="button" class="ghost" data-act="giveup">Abandonner le voyage</button>`;
+    else actions=`<p class="lede">${r.mode==='maalem'?'Le mode Maalem ne pardonne pas.':'Vous n\u2019avez plus de baraka.'} Le voyage s\u2019arrête ici.</p><button type="button" class="primary" data-act="giveup">Voir le bilan</button>`;
+  return `<main class="result ${res.win?'won':'lost'}">
+    <h1>${title}</h1>
+    <p class="lede">${esc(f.def.name)} — ${res.ps} à ${res.rs}.</p>
+    ${m?`<table class="tally"><thead><tr><th></th><th>Vous</th><th>Rival</th></tr></thead><tbody>${tallyRows(m)}</tbody></table>
+    ${m.mods.bar&&m.kelmaRes&&(m.kelmaRes.p||m.kelmaRes.r)?`<p class="faint">${['p','r'].filter(x=>m.kelmaRes[x]).map(x=>`Kelma ${x==='p'?'de':'du rival sur'} ${m.kelmaRes[x].v} : ${m.kelmaRes[x].held?'tenue':'rompue'}`).join(' · ')}</p>`:''}`:''}
+    ${m?`<details class="jdetails"><summary>Déroulé complet de la manche</summary>${journalHTML(m)}</details>`:''}
+    ${actions}
+    ${quitBtn()}
+  </main>`;
+}
+function viewReward(){
+  const r=G.run, opts=rewardOffers(r,r.stage)||[], f=stageInfo(r,r.stage);
+  const card=(o,i)=>{ let t,d,kind;
+    if(o.k==='sel'){ t='+'+o.n+' sel'; d='Le sel de la caravane : de quoi remodeler votre deck au marché.'; kind='Sel'; }
+    else if(o.k==='corp'){ t=CORPS[o.v].name; d=CORPS[o.v].text; kind='Corporation offerte'; }
+    else { t=BAR[o.v].name+' (mèche '+BAR[o.v].fuse+')'; d=BAR[o.v].text; kind='Mèche offerte'; }
+    return `<button type="button" class="reward" data-act="claim" data-i="${i}"><span class="lab">${kind}</span><b>${esc(t)}</b><span>${esc(d)}</span></button>`; };
+  return `<main class="reward-screen city-${f.city}"><p class="crumb">${esc(f.cityDef.name)} · le Maalem est vaincu</p><h1>Le trophée du Maalem</h1>
+    <p class="lede">${esc(f.def.rival)} vous laisse choisir une récompense. Une seule.</p><div class="rewards">${opts.map(card).join('')}</div>${quitBtn()}</main>`;
+}
+function shareBlock(won){
+  const t=shareText(G.run,won);
+  return `<div class="share"><p id="sharetxt">${esc(t)}</p><button type="button" class="ghost sm" data-act="share">Copier le résumé</button>${G.copied?' <span class="faint">Copié.</span>':''}</div>`;
+}
+function summaryBlock(r){
+  return `<h2>Votre deck</h2>${deckStatsBlock(r.deck)}${stacksBlock(r.deck,false)}
+    ${r.corps.length?`<h2>Vos corporations</h2><div class="corp-row">${r.corps.map(corpChip).join('')}</div>`:''}
+    ${r.mods.bar&&r.bar.length?`<h2>Votre arsenal</h2><div class="bchips">${r.bar.map(barChip).join('')}</div>`:''}`;
+}
+function viewOver(){
+  const r=G.run, total=stagesOf(r).length, f=stageInfo(r,Math.min(r.stage,total-1));
+  return `<main class="result lost">
+    <h1>Le voyage s\u2019arrête</h1>
+    <p class="lede">${esc(f.cityDef.name)} — ${esc(f.def.name)}. ${r.wins} souk${r.wins>1?'s':''} gagné${r.wins>1?'s':''} sur ${total}${r.retries?`, ${r.retries} nouvelle${r.retries>1?'s':''} donne${r.retries>1?'s':''}`:''}.</p>
+    ${summaryBlock(r)}
+    ${shareBlock(false)}
+    <button type="button" class="primary" data-act="restartsame">Retenter avec la même graine</button>
+    <button type="button" class="ghost" data-act="restart">Nouveau voyage</button>
+  </main>`;
+}
+function viewEnd(){
+  const r=G.run, total=stagesOf(r).length;
+  return `<main class="result won">
+    <h1>Dakhla est à vous</h1>
+    <p class="lede">Vous avez traversé ${CITIES.length} villes et gagné ${r.wins} souks sur ${total}${r.retries?`, avec ${r.retries} nouvelle${r.retries>1?'s':''} donne${r.retries>1?'s':''}`:' sans jamais rejouer un souk'}. Mode ${esc(MODES[r.mode].name)}.</p>
+    ${summaryBlock(r)}
+    ${shareBlock(true)}
+    <p class="faint">Graine ${r.seed} — partagez-la pour qu'un autre joueur tente le même voyage.</p>
+    <button type="button" class="primary" data-act="restart">Nouveau voyage</button>
+  </main>`;
+}
+function viewMarket(){
+  const r=G.run, offers=G.offers||(G.offers=marketOffers(r,r.stage)), f=stageInfo(r,r.stage), L=curStages(), next=L[r.stage+1], nf=stageInfo(r,r.stage+1);
+  const corpOffers=offers.corps.map(k=>`<div class="offer"><div><b>${esc(CORPS[k].name)}</b> <span class="role">${esc(CORPS[k].role)}</span><p>${esc(CORPS[k].text)}</p></div>
+    <button type="button" data-act="buycorp" data-k="${k}" ${r.sel>=PRICES.corp&&r.corps.length<3?'':'disabled'}>${r.corps.length>=3?'Trois corporations':`Recruter · ${PRICES.corp} sel`}</button></div>`).join('')||'<p class="faint">Plus de corporation à recruter ici.</p>';
+  const ownedC=r.corps.length?`<div class="owned"><span class="lab">Vos corporations</span>${r.corps.map(k=>`<div class="own-row"><span class="corp" title="${esc(CORPS[k].text)}"><b>${esc(CORPS[k].name)}</b> ${esc(CORPS[k].text)}</span><button type="button" class="link" data-act="uncorp" data-k="${k}">${G.confirm==='c:'+k?`Confirmer (+${PRICES.uncorp} sel)`:`Se défaire (+${PRICES.uncorp} sel)`}</button></div>`).join('')}</div>`:'';
+  const bars=r.mods.bar?`<h2>Mèches <span class="faint">(${r.bar.length}/${ARSENAL_MAX})</span></h2>
+    ${offers.bars.map(k=>`<div class="offer"><div><b>${BAR[k].name}</b> <span class="role">mèche ${BAR[k].fuse}</span><p>${esc(BAR[k].text)}</p></div>
+      <button type="button" data-act="buybar" data-k="${k}" ${r.sel>=PRICES.bar&&r.bar.length<ARSENAL_MAX?'':'disabled'}>${r.bar.length>=ARSENAL_MAX?'Arsenal plein':`Acquérir · ${PRICES.bar} sel`}</button></div>`).join('')||'<p class="faint">Plus de mèche à acquérir ici.</p>'}
+    ${r.bar.length?`<div class="owned"><span class="lab">Votre arsenal</span>${r.bar.map(k=>`<div class="own-row">${barChip(k)}<button type="button" class="link" data-act="unbar" data-k="${k}">${G.confirm===k?`Confirmer : se défaire de ${BAR[k].name} (+${PRICES.unbar} sel)`:`Se défaire (+${PRICES.unbar} sel)`}</button></div>`).join('')}</div>`:''}`:'';
+  const bk=barakaWhy(r), bkBlock=r.mode==='caravanier'?`<h2>Baraka <span class="faint">(${r.baraka}/${BARAKA_MAX})</span></h2>
+    <div class="offer"><div><b>Une baraka</b> <span class="role">${BARAKA_PRICE} sel</span><p>Une relance de plus : une défaite la consomme pour retenter le souk avec une nouvelle donne. Vous en avez ${r.baraka} ; vous pouvez en garder ${BARAKA_MAX} au plus.</p>${bk?`<p class="why">${esc(bk)}</p>`:''}</div>
+      <button type="button" data-act="buybaraka" ${bk?'disabled':''}>Acheter · ${BARAKA_PRICE} sel</button></div>`:`<p class="faint">${esc(barakaWhy(r)||'')}</p>`;
+  return `<main class="market city-${f.city}">
+    <p class="crumb">${esc(f.cityDef.name)} · le marché après ${esc(f.def.name)}</p>
+    <h1>Le marché</h1>
+    <p class="purse">Votre sel : <b>${r.sel}</b> <span class="faint">· ${esc(modeBadge(r))}</span></p>
+    ${G.msg?`<p class="msg" aria-live="polite">${esc(G.msg)}</p>`:''}
+    <section class="next"><span class="lab">Prochaine épreuve : ${esc(next.name)}${nf.firstOfCity?' — '+esc(nf.cityDef.name):''}</span><p>${esc(next.rival)}${next.boss?' (le Maalem)':''}</p>${next.rule?`<p class="rule-mini">${esc(ruleText(next.rule))}</p>`:''}${next.lead?`<p class="rule-mini">Avance du rival : +${next.lead}</p>`:''}${rivalDeckBlock(next)}${(next.corps&&next.corps.length)?`<span class="lab">Ses corporations</span><div class="corp-row">${next.corps.map(corpChip).join('')}</div>`:''}</section>
+    <h2>Corporations <span class="faint">(${r.corps.length}/3)</span></h2>${corpOffers}${ownedC}
+    ${bars}
+    ${bkBlock}
+    ${newValuesBlock(next)}
+    <h2>Votre deck</h2>
+    ${deckStatsBlock(r.deck)}
+    <p class="faint">Touchez une pile de cartes pour la consacrer à un type, la retirer ou la dupliquer.</p>
+    ${stacksBlock(r.deck,true)}
+    ${typesLegend()}
+    <button type="button" class="primary" data-act="leave">${nf.firstOfCity?'Partir pour '+esc(nf.cityDef.name):'Reprendre la route'}</button>
+    ${quitBtn()}
+    ${G.sheet==='stack'&&G.stack?stackSheet():''}${G.sheet==='newv'?newvSheet():''}${G.sheet==='swap'?swapSheet():''}
+  </main>`;
+}
+// ---------- didacticiel et réglages ----------
+const TUTO=[
+  {t:'Deux zones, deux métiers',d:'Le Souk fait grossir votre pile : la plus grosse pile gagne le Moul Souk, +'+MOUL+' points. La Médina sert aux annonces : Ronda +2, Tringa +3, jusqu\u2019à 6 points. Les deux zones comptent, et les mélanger paie le mieux.',
+   v:()=>`<div class="tv"><div class="tz zS"><b>Souk</b><div>${cardHTML({v:5,s:'B'},{small:true})}${cardHTML({v:6,s:'C'},{small:true})}</div><em>→ votre pile</em></div><div class="tz zM"><b>Médina</b><div>${cardHTML({v:7,s:'E'},{small:true})}</div><em>→ vos annonces</em></div></div>`},
+  {t:'Le rival montre son coup',d:'À chaque tour, le rival annonce sa carte et sa zone avant que vous ne choisissiez. Vous ne devinez rien : vous prévoyez.',
+   v:()=>`<div class="tv"><div class="tz intent-mock"><b>Le rival va jouer</b><div>${cardHTML({v:10,s:'D'})}</div><em>en Médina</em></div></div>`},
+  {t:'Capturer, c\u2019est enchaîner',d:'Une carte prend toutes les cartes de même valeur, puis les valeurs juste au-dessus, deux marches au plus. Ici, votre 5 prend le 5, le 6 et le 7 d\u2019un coup.',
+   v:()=>`<div class="tv chain">${cardHTML({v:5,s:'B'},{small:true})}<span>→</span>${cardHTML({v:6,s:'C'},{small:true})}<span>→</span>${cardHTML({v:7,s:'E'},{small:true})}</div>`},
+  {t:'Ronda et Tringa',d:'En Médina, posez une carte, puis sa jumelle : Ronda, +2. Le troisième exemplaire fait une Tringa, +3. Capturer la carte du rival ne rapporte rien, mais brise sa Ronda en préparation.',
+   v:()=>`<div class="tv chain">${cardHTML({v:4,s:'B'},{small:true,owner:'p'})}<span>+</span>${cardHTML({v:4,s:'C'},{small:true})}<span>=</span><b class="big">Ronda +2</b></div>`},
+  {t:'L\u2019aperçu ne ment pas',d:'Touchez une carte : chaque zone affiche le résultat exact. Si votre carte égale celle du rival dans la même zone, une pièce décide qui résout d\u2019abord, et l\u2019aperçu montre les deux issues.',
+   v:()=>`<div class="tv chain"><span class="coinmock">Face</span><b class="big">ou</b><span class="coinmock riv">Pile</span></div>`},
+  {t:'Quatre types de cartes',d:'Au marché, consacrez une carte à un type : Oros compte double dans la pile, Copas rapporte un point de plus sur une Ronda ou une Tringa, Espadas capture la valeur voisine, Bastos protège une base en Médina. Les autres cartes restent neutres.',
+   v:()=>`<div class="tv">${FX_ORDER.map(k=>cardHTML({v:{oros:5,copas:4,espadas:7,bastos:3}[k],fx:k},{small:true})).join('')}</div>`},
+  {t:'Le voyage',d:'Quatre villes, seize épreuves, un maître au bout de chaque ville. Entre deux souks, le marché : corporations, mèches, cartes nouvelles. Perdre coûte une baraka, ou le voyage selon le mode.',
+   v:()=>`<div class="route">${CITIES.map((c,i)=>`<span class="cdot ${i===0?'cur':''}"><i></i><em>${esc(c.name)}</em></span>`).join('')}</div>`},
+];
+function tutoOverlay(){
+  const i=G.tuto, s=TUTO[i], last=i===TUTO.length-1;
+  return `<div class="sheet tuto" role="dialog" aria-modal="true" aria-label="Didacticiel"><div class="sheet-in">
+    <p class="crumb">Étape ${i+1} sur ${TUTO.length}</p><h2>${esc(s.t)}</h2><div class="tuto-vis">${s.v()}</div><p>${esc(s.d)}</p>
+    <div class="tuto-nav">${i>0?'<button type="button" class="ghost" data-act="tutoprev">Précédent</button>':''}<button type="button" class="primary" data-act="${last?'tutoend':'tutonext'}">${last?'Compris, partons !':'Suivant'}</button></div>
+    <button type="button" class="link" data-act="tutoend">Passer le didacticiel</button></div></div>`;
+}
+function settingsSheet(){
+  const s=G.settings, tog=(k,l,d)=>`<button type="button" class="mod ${s[k]?'on':''}" data-act="set" data-k="${k}" aria-pressed="${s[k]}"><span class="mod-t"><b>${l}</b><span class="mod-s">${s[k]?'activé':'désactivé'}</span></span><span class="mod-d">${d}</span></button>`;
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Réglages"><div class="sheet-in"><h2>Réglages</h2>
+    ${tog('sound','Sons','Petits effets sonores synthétisés, jamais de musique.')}
+    ${tog('hints','Conseils','Une ligne d\u2019aide contextuelle pendant les manches.')}
+    ${tog('anim','Animations','Les cartes glissent, s\u2019entrechoquent et rejoignent la pile. Un tap passe l\u2019animation.')}
+    <button type="button" class="ghost" data-act="tuto">Revoir le didacticiel</button>
+    <button type="button" class="ghost" data-act="wipe">${G.confirm==='wipe'?'Confirmer : tout effacer':'Effacer sauvegarde et statistiques'}</button>
+    <button type="button" class="ghost" data-act="closesheet">Fermer</button></div></div>`;
+}
+function quitBtn(){ return G.run?`<button type="button" class="ghost sm quit" data-act="quitask">Quitter le voyage</button>`:''; }
+function quitSheet(){ return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Quitter le voyage"><div class="sheet-in"><h2>Quitter le voyage ?</h2><p>Le voyage en cours s\u2019arrête. Le sel, le deck, les corporations, les mèches et les barakas sont perdus. Vous revenez à l\u2019accueil, où vous pourrez en commencer un autre.</p><button type="button" class="primary quit" data-act="quit">Quitter le voyage</button><button type="button" class="ghost" data-act="closesheet">Continuer le voyage</button></div></div>`; }
+function globalOverlays(){ return (G.tuto!=null?tutoOverlay():'')+(G.sheet==='settings'?settingsSheet():'')+(G.sheet==='quit'?quitSheet():''); }
+const VIEWS={title:viewTitle,travel:viewTravel,intro:viewIntro,game:viewGame,result:viewResult,reward:viewReward,market:viewMarket,over:viewOver,end:viewEnd};
+
+// ---------- ACTIONS ----------
+let NEXT_TPL=2000;
+function resetPick(){ G.sel=null; G.sel2=null; G.barSel=null; G.escalate=false; }
+function doPlay(spec,flipped){
+  const m=G.m, rm=m.intent, card=m.hand.p.find(c=>c.id===spec.sel), card2=spec.sel2!=null?m.hand.p.find(c=>c.id===spec.sel2):null;
+  if(!card) return;
+  const pm={card,card2,zone:spec.z,escalate:spec.esc}; if(spec.bar){ pm.bar={...spec.bar}; if(spec.bar.name==='AOUD') pm.zone='M'; }
+  const snapA=Anim.snap();
+  const res=playTurn(m,pm,rm);
+  const mine=`vous jouez ${card.v} ${ZONE_AT[pm.zone]}${spec.bar?` avec ${BAR[spec.bar.name].name}`:''}`, his=rm.card?`le rival ${rm.card.v} ${ZONE_AT[rm.zone]}${rm.bar?` avec ${BAR[rm.bar.name].name}`:''}`:'le rival passe';
+  G.last=[`${mine}, ${his}`,...(flipped?[m.coin==='p'?'pile ou face : Face, vous résolvez d\u2019abord':'pile ou face : Pile, le rival résout d\u2019abord']:[]),...res.ev.map(evText).filter(Boolean)];
+  Sfx.play(res.ev.some(e=>e.kind==='ronda'||e.kind==='tringa'||e.kind==='exchange')?'cry':res.ev.some(e=>e.kind==='bar')?'bar':'card');
+  resetPick(); advance(m);
+  const animate=Anim.willPlay(snapA,res.ev);
+  if(m.over){ if(animate) G.endPending=true; else endManche(); }
+  if(animate) Anim.queue(snapA,res.ev);
+}
+const ACT={
+  starter:d=>{G.starter=d.k;}, mod:d=>{G.mods[d.k]=!G.mods[d.k];}, mode:d=>{G.mode=d.k;}, rules:()=>{G.rules=!G.rules;},
+  daily:()=>{ G.seed=dailySeed(); G.daily=true; },
+  start:()=>{ NEXT_TPL=2000; G.run=newRun({seed:G.seed,starter:G.starter,mods:G.mods,mode:G.mode,route:'route'}); G.stats.runs++; G.saved=null; G.m=null; G.offers=null; G.msg=null; G.sheet=null; G.copied=false; G.screen='travel'; persist(); },
+  restartsame:()=>{ const r=G.run; G.seed=r.seed; G.starter=r.starter; G.mods={...r.mods}; G.mode=r.mode; ACT.start(); },
+  resume:()=>{ const s=G.saved; if(!s) return; G.run=migrateDeck(s.run); G.offers=s.offers||null; NEXT_TPL=Math.max(2000,...G.run.deck.map(c=>c.id+1)); G.seed=G.run.seed; G.starter=G.run.starter; G.mods={...G.run.mods}; G.mode=G.run.mode;
+    G.m=null; G.saved=null; G.msg=null; G.sheet=null; G.screen=(s.screen==='result'&&!G.run.result)?'intro':s.screen; },
+  travelgo:()=>{ G.screen='intro'; persist(); },
+  enter:()=>{ G.m=newManche(G.run,G.run.stage); resetPick(); G.last=null; G.pending=null; G.sheet=null; G.screen='game'; persist(); },
+  pick:d=>{
+    const id=+d.id, m=G.m, c=m.hand.p.find(x=>x.id===id); if(!c) return;
+    Sfx.play('tap');
+    if(G.barSel&&G.barSel.name==='AOUD'){ const twin=m.hand.p.find(x=>x!==c&&x.v===c.v); if(!twin) return; G.sel=id; G.sel2=twin.id; return; }
+    G.sel2=null; G.sel=G.sel===id?null:id; G.escalate=false;
+  },
+  bar:d=>{
+    const k=d.k; if(G.barSel&&G.barSel.name===k){ G.barSel=null; G.sel2=null; return; }
+    if(barDisabled(k)) return; G.barSel={name:k}; G.sel2=null; if(k==='AOUD') G.sel=null;
+  },
+  khatf:d=>{ if(G.barSel&&G.barSel.name==='KHATF') G.barSel={...G.barSel,target:+d.id}; },
+  kv:d=>{ if(G.barSel&&G.barSel.name==='KELMA') G.barSel={...G.barSel,v:+d.v}; },
+  cs:d=>{ if(G.barSel&&G.barSel.name==='CHERGUI') G.barSel={...G.barSel,src:d.src}; },
+  esc:()=>{G.escalate=!G.escalate;},
+  play:d=>{
+    const m=G.m; if(!G.sel||!barReady()) return;
+    const spec={sel:G.sel,sel2:G.sel2,z:d.z,bar:G.barSel?{...G.barSel}:null,esc:G.escalate};
+    const pm=buildPm(d.z);
+    if(isTie(pm,m.intent,m)){ G.pending=spec; return; }
+    doPlay(spec,false);
+  },
+  resolve:()=>{ const p=G.pending; if(!p) return; G.pending=null; doPlay(p,true); },
+  pass:()=>{ const m=G.m; const res=playTurn(m,{card:null,zone:null},m.intent); G.last=['vous passez',...res.ev.map(evText).filter(Boolean)]; resetPick(); advance(m); if(m.over) endManche(); },
+  cont:()=>{
+    const r=G.run, res=r.result; if(!res||!res.win) return;
+    const f=stageInfo(r,res.stage);
+    r.sel+=res.gain; r.wins++; G.stats.stagesWon++; G.stats.best=Math.max(G.stats.best,r.wins);
+    r.result=null; G.msg=null; G.sheet=null; G.nv=null; G.confirm=null;
+    if(f.last){ G.stats.wins++; G.screen='end'; Sfx.play('win'); }
+    else if(f.boss){ G.screen='reward'; }
+    else { G.offers=marketOffers(r,res.stage); G.screen='market'; }
+    persist();
+  },
+  retry:()=>{ const r=G.run; if(!takeRetry(r)) return; r.result=null; G.m=null; G.screen='intro'; persist(); },
+  giveup:()=>{ const r=G.run; r.result=null; G.screen='over'; persist(); },
+  claim:d=>{ const r=G.run, o=(rewardOffers(r,r.stage)||[])[+d.i]; if(!o||!takeReward(r,o)) return; r.rewardFor=r.stage; G.offers=marketOffers(r,r.stage); G.msg=null; G.screen='market'; Sfx.play('buy'); persist(); },
+  restart:()=>{ G.run=null; G.m=null; G.offers=null; G.seed=Math.floor(100000+Math.random()*899999); G.daily=false; G.screen='title'; persist(); },
+  buybaraka:()=>{ const r=G.run; if(!buyBaraka(r)) return; G.msg=`Une baraka de plus : ${r.baraka} au total.`; Sfx.play('buy'); persist(); },
+  buycorp:d=>{const r=G.run; if(r.sel<PRICES.corp||r.corps.length>=3||r.corps.includes(d.k)) return; r.sel-=PRICES.corp; r.corps.push(d.k); G.offers.corps=G.offers.corps.filter(x=>x!==d.k); G.msg=`${CORPS[d.k].name} rejoint votre caravane.`; Sfx.play('buy'); persist();},
+  buybar:d=>{const r=G.run; if(r.sel<PRICES.bar||r.bar.length>=ARSENAL_MAX||r.bar.includes(d.k)) return; r.sel-=PRICES.bar; r.bar.push(d.k); G.offers.bars=G.offers.bars.filter(x=>x!==d.k); G.msg=`${BAR[d.k].name} rejoint votre arsenal.`; Sfx.play('buy'); persist();},
+  unbar:d=>{ if(G.confirm===d.k){ const r=G.run; r.bar=r.bar.filter(x=>x!==d.k); r.sel+=PRICES.unbar; G.confirm=null; G.msg=`Vous vous défaites de ${BAR[d.k].name}.`; persist(); } else G.confirm=d.k; },
+  uncorp:d=>{ const key='c:'+d.k; if(G.confirm===key){ const r=G.run; r.corps=r.corps.filter(x=>x!==d.k); r.sel+=PRICES.uncorp; G.confirm=null; G.msg=`Vous vous défaites de ${CORPS[d.k].name}.`; persist(); } else G.confirm=key; },
+  stack:d=>{G.stack=d.k; G.sheet='stack';}, deckview:()=>{G.sheet='deck';}, journal:()=>{ G.sheet='journal'; }, closesheet:()=>{G.sheet=null; G.stack=null; G.nv=null; G.confirm=null;},
+  quitask:()=>{ if(G.run) G.sheet='quit'; },
+  quit:()=>{ if(!G.run) return; if(Anim.busy()) Anim.skip(); G.run=null; G.m=null; G.saved=null; G.offers=null; G.pending=null; G.anim=null; G.endPending=false; G.sel=null; G.sel2=null; G.barSel=null; G.escalate=false; G.last=null; G.msg=null; G.sheet=null; G.stack=null; G.nv=null; G.confirm=null; G.screen='title'; persist(); },
+  newv:d=>{G.nv=+d.v; G.sheet='newv';}, newback:()=>{G.sheet='newv';}, newswapstart:()=>{ if(G.run.sel>=PRICES.swap) G.sheet='swap'; },
+  newadd:()=>{ const v=G.nv; if(buyNew(G.run,v,'add',null,NEXT_TPL++)){ G.msg=`Un ${v} rejoint votre deck (${G.run.deck.length} cartes).`; G.sheet=null; G.nv=null; Sfx.play('buy'); persist(); } },
+  newswap:d=>{ const v=G.nv, old=G.run.deck.find(c=>c.id===+d.id); if(old&&buyNew(G.run,v,'swap',+d.id,NEXT_TPL++)){ G.msg=`Un ${old.v} devient un ${v}.`; G.sheet=null; G.nv=null; Sfx.play('buy'); persist(); } },
+  deckact:d=>{
+    const r=G.run, k=d.k; if(!G.stack) return;
+    const [vs,fk]=G.stack.split('|'), v=+vs, cur=fk==='n'?null:fk, c=r.deck.find(x=>x.v===v&&(x.fx||null)===cur); if(!c) return;
+    if(k==='fx'){ if(!consecrate(r,c.id,d.t)) return; G.msg=`Un ${c.v} devient ${FX[d.t].name} : ${FX[d.t].role.toLowerCase()}.`; G.sheet=null; G.stack=null; Sfx.play('buy'); persist(); return; }
+    if(r.sel<PRICES[k]) return;
+    if(k==='thin'){ if(r.deck.length<=DECK_MIN) return; r.deck=r.deck.filter(x=>x!==c); G.msg=`Un ${c.v} quitte votre deck.`; }
+    else if(k==='dup'){ if(!buyDup(r,c.id,NEXT_TPL++)) return; G.msg=`Un ${c.v} neutre de plus rejoint votre deck (${r.deck.length} cartes).`; G.sheet=null; G.stack=null; Sfx.play('buy'); persist(); return; }
+    else return;
+    r.sel-=PRICES[k]; G.sheet=null; G.stack=null; Sfx.play('buy'); persist();
+  },
+  leave:()=>{ const r=G.run; r.stage++; r.attempt=0; G.sheet=null; G.msg=null; G.confirm=null; G.offers=null; G.screen=stageInfo(r,r.stage).firstOfCity?'travel':'intro'; persist(); },
+  share:()=>{ const t=shareText(G.run,G.screen==='end'); G.copied=false; try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(()=>{G.copied=true; if(typeof render==='function') render();},()=>{}); }catch(e){} },
+  tuto:()=>{ G.tuto=0; G.sheet=null; }, tutonext:()=>{ G.tuto=Math.min(G.tuto+1,TUTO.length-1); }, tutoprev:()=>{ G.tuto=Math.max(0,G.tuto-1); },
+  tutoend:()=>{ G.tuto=null; G.settings.tutoSeen=true; persist(); },
+  settings:()=>{ G.sheet='settings'; }, set:d=>{ G.settings[d.k]=!G.settings[d.k]; persist(); },
+  wipe:()=>{ if(G.confirm==='wipe'){ try{ localStorage.removeItem(LS_KEY); }catch(e){} G.stats={runs:0,wins:0,stagesWon:0,best:0}; G.settings={sound:true,hints:true,anim:true,tutoSeen:true}; G.saved=null; G.run=null; G.m=null; G.confirm=null; G.sheet=null; G.screen='title'; }
+    else G.confirm='wipe'; },
+};
+function dispatch(act,data){ if(ACT[act]){ ACT[act](data||{}); return true; } return false; }
+(function init(){
+  const d=store();
+  G.settings=Object.assign({sound:true,hints:true,anim:true,tutoSeen:false},d.settings||{});
+  G.stats=Object.assign({runs:0,wins:0,stagesWon:0,best:0},d.stats||{});
+  G.saved=(d.save&&d.save.run&&d.save.run.deck)?d.save:null;
+  if(!G.settings.tutoSeen) G.tuto=0;
+})();
+
+// ---------- pile ou face (animation 3D) ----------
+function starSVG(){ const pts=[]; for(let i=0;i<16;i++){ const r=i%2?19:30, a=Math.PI*i/8-Math.PI/2; pts.push((32+r*Math.cos(a)).toFixed(1)+','+(32+r*Math.sin(a)).toFixed(1)); }
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><polygon points="${pts.join(' ')}"/><circle cx="32" cy="32" r="8" style="opacity:.55"/></svg>`; }
+let flipping=null;
+function flipCoin(result,onDone){
+  if(window.__onFlip) window.__onFlip(result);
+  Sfx.play('coin');
+  if(typeof document.createElement!=='function'){ onDone&&onDone(); return; }
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ov=document.createElement('div'); ov.className='flip-ov'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true'); ov.setAttribute('aria-label','Pile ou face');
+  let edges=''; for(let z=-4;z<=4;z++) edges+=`<div class="flip-edge" style="transform:translateZ(${z}px)"></div>`;
+  ov.innerHTML=`<p class="flip-title">Pile ou face</p>
+    <div class="flip-stage"><div class="flip-shadow"></div><div class="flip-toss"><div class="flip-coin">${edges}
+      <div class="flip-face f-you">${starSVG()}<span class="fl">Vous</span><span class="fs">face</span></div>
+      <div class="flip-face f-riv">${starSVG()}<span class="fl">Rival</span><span class="fs">pile</span></div>
+    </div></div></div>
+    <p class="flip-res ${result}" aria-live="assertive"></p>
+    <button type="button" class="flip-go">Continuer</button>`;
+  document.body.appendChild(ov);
+  const toss=ov.querySelector('.flip-toss'), coin=ov.querySelector('.flip-coin'), sh=ov.querySelector('.flip-shadow'), res=ov.querySelector('.flip-res'), go=ov.querySelector('.flip-go');
+  const end=(result==='p'?360*5:360*5+180);
+  const D=reduce?0:1500;
+  let done=false, timer=null;
+  const reveal=()=>{ res.innerHTML=result==='p'?'<b>Face</b><br>Vous résolvez en premier.':'<b>Pile</b><br>Le rival résout en premier.'; res.classList.add('show'); go.classList.add('show'); go.focus({preventScroll:true}); };
+  const close=()=>{ if(done) return; done=true; clearTimeout(timer); ov.remove(); flipping=null; onDone&&onDone(); };
+  if(reduce||!coin.animate){ coin.style.transform=`rotateX(${end%360}deg)`; reveal(); }
+  else{
+    // le lancer : montée, retombée, petit rebond — pendant que la pièce tourne sur elle-même
+    toss.animate([{transform:'translateY(0)'},{transform:'translateY(-170px)',offset:.42,easing:'cubic-bezier(.3,0,.7,1)'},{transform:'translateY(0)',offset:.82},{transform:'translateY(-18px)',offset:.9},{transform:'translateY(0)'}],{duration:D,easing:'cubic-bezier(.2,.7,.4,1)',fill:'forwards'});
+    coin.animate([{transform:'rotateX(0deg)'},{transform:`rotateX(${end}deg)`}],{duration:D*0.86,easing:'cubic-bezier(.15,.55,.3,1)',fill:'forwards'});
+    sh.animate([{transform:'scale(1)',opacity:1},{transform:'scale(.45)',opacity:.35,offset:.42},{transform:'scale(1)',opacity:1,offset:.82},{transform:'scale(1)',opacity:1}],{duration:D,fill:'forwards'});
+    setTimeout(reveal,D*0.86);
+  }
+  timer=setTimeout(close,D+2600);
+  ov.addEventListener('click',close);
+  ov.addEventListener('keydown',e=>{ if(e.key==='Escape'||e.key==='Enter'){ e.preventDefault(); close(); } });
+  flipping={close};
+}
+
+// ---------- rendu et événements ----------
+const app=document.getElementById('app');
+let prevScreen=null;
+function render(){
+  const kf=d=>d.id||d.k||d.z||d.v||d.src||'';
+  const f=document.activeElement, key=f&&f.dataset&&f.dataset.act?[f.dataset.act,kf(f.dataset)].join(':'):null;
+  app.innerHTML=VIEWS[G.screen]()+globalOverlays();
+  if(G.screen!==prevScreen){ window.scrollTo(0,0); prevScreen=G.screen; }
+  else if(key){ const [a,b]=key.split(':'); const el=[...app.querySelectorAll(`[data-act="${a}"]`)].find(e=>kf(e.dataset)===b); if(el) el.focus({preventScroll:true}); }
+  if(G.sheet){ const s=app.querySelector('.sheet button:not(:disabled)'); if(s) s.focus({preventScroll:true}); }
+  if(G.anim) Anim.play();
+  if(G.screen==='game'&&G.pending&&!flipping){ flipCoin(G.m.coin,()=>{ dispatch('resolve'); render(); }); }
+}
+app.addEventListener('click',e=>{
+  if(Anim.busy()){ e.preventDefault(); Anim.skip(); return; }
+  const t=e.target.closest('[data-act]'); if(!t||t.tagName==='INPUT') return;
+  if(t.tagName==='SUMMARY') e.preventDefault();
+  if(t.disabled) return;
+  if(dispatch(t.dataset.act,{...t.dataset})) render();
+});
+app.addEventListener('change',e=>{ if(e.target.dataset.act==='seed'){ const v=parseInt(e.target.value,10); if(v>0){ G.seed=v; G.daily=false; } else e.target.value=G.seed; } });
+document.addEventListener('pointerdown',()=>{ if(Anim.busy()) Anim.skip(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!document.querySelector('.flip-ov')){ if(G.tuto!=null){ ACT.tutoend(); render(); } else if(G.sheet){ G.sheet=null; G.stack=null; G.confirm=null; render(); } } });
+render();
+</script>
+</body>
+</html>
