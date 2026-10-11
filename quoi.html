@@ -328,6 +328,27 @@ button.zone .card{pointer-events:none;}
 .sober .caravan .lab{font-size:.78rem;}
 .last.compact{font-size:.86rem;font-weight:600;} .last.compact{font-family:var(--f-text,inherit);font-style:normal;}
 @media (min-width:600px){ #app{padding-top:28px;} }
+
+/* --- parcours guidé --- */
+.coach{margin:0 0 12px;padding:12px 14px;border-radius:14px;background:var(--surface);border:2px solid var(--you);}
+.coach.ph-done{border-color:#2E7D32;} .coach.ph-retry{border-color:#C0502F;}
+.coach-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap;} .coach-top .crumb{flex:1 1 auto;min-width:0;} .coach-n{font-size:.78rem;color:var(--muted);white-space:nowrap;}
+.coach{color:var(--ink);}
+.coach-bar{height:5px;border-radius:99px;background:var(--line);margin:6px 0 10px;overflow:hidden;} .coach-bar i{display:block;height:100%;background:var(--you);border-radius:99px;transition:width .3s;}
+.coach p{margin:.3em 0;line-height:1.45;} .coach-goal{font-size:1.02rem;} .coach-ok{font-weight:700;color:#2E7D32;font-size:1.05rem;} .coach-retry{font-weight:600;color:#C0502F;}
+.coach-actions{display:flex;gap:12px;align-items:center;margin-top:8px;flex-wrap:wrap;} .coach .primary{margin-top:10px;}
+.wt-target{animation:wtpulse 1.4s ease-in-out infinite;}
+.card.wt-target{box-shadow:0 0 0 3px #F2B01E,0 0 14px 3px rgba(242,176,30,.65);}
+button.zone.wt-target{box-shadow:0 0 0 3px #fff inset,0 0 0 4px #F2B01E,0 0 16px 4px rgba(242,176,30,.7);}
+@keyframes wtpulse{0%,100%{outline:3px solid rgba(242,176,30,.95);outline-offset:2px;}50%{outline:3px solid rgba(242,176,30,.25);outline-offset:5px;}}
+@media (prefers-reduced-motion:reduce){ .wt-target{animation:none;} }
+.tuto-page{padding:8px 0 24px;} .tuto-page h1{margin:.2em 0 .4em;} .tuto-page .lede{font-size:1.02rem;line-height:1.55;} .tuto-page .primary{margin-top:14px;}
+
+/* le guide remplace conseils et règles pendant le parcours */
+.wtboard .tip,.wtboard .rules,.wtboard .unseen,.wtboard .caravan,.wtboard .corp-row,.wtboard .rcorps,.wtboard .arsenal>p.faint,.wtboard .bdesc{display:none;}
+
+/* decks de départ : piles de cartes comme dans la construction de deck */
+span.stack{display:inline-block;} .st-stacks{margin:8px 0 2px;padding-bottom:6px;gap:14px 12px;} .st-stacks .card{margin:0;}
 </style>
 </head>
 <body>
@@ -418,7 +439,7 @@ const CORPS={
   nejjar:{name:'Le Nejjar',role:'menuisier',text:'Chaque capture d\u2019au moins 3 cartes au Souk compte deux cartes de plus dans votre pile.'},
   zelligeur:{name:'Le Zelligeur',role:'mosaïste',text:'Si l\u2019une de vos bases est encore posée en Médina à la fin de la manche, elle rapporte 1 point.'},
   fakhkhar:{name:'Le Fakhkhar',role:'potier',text:'Vos cartes Oros comptent triple dans votre pile, au lieu de double.'},
-  sakka:{name:'Le Sakka',role:'porteur d\u2019eau',text:'Chaque souk gagné vous rapporte 2 sel de plus.'},
+  garrab:{name:'Le Garrab',role:'porteur d\u2019eau',text:'Chaque souk gagné vous rapporte 2 sel de plus.'},
 };
 
 function ruleHas(rule,name){ return !!rule && rule.split('+').includes(name); }
@@ -542,8 +563,9 @@ function doKhatf(st,side,m){
   for(const zz of ['S','M']){ const f=st.zones[zz].find(x=>x.id===id); if(f){z=zz;c=f;} }
   if(!c||(side==='r'&&c.sealed&&c.owner==='p')) return [{kind:'khatfMiss',side}];
   remove(st.zones[z],c);
-  if(z==='S') st.piles[side].push(c); else st.out++;
-  return [{kind:'khatf',side,zone:z,v:c.v,ids:[c.id],to:z==='S'?'pile':'out'}];
+  const keep=(z==='S')||cp(st,side,'dabbagh');
+  if(keep) st.piles[side].push(c); else st.out++;
+  return [{kind:'khatf',side,zone:z,v:c.v,ids:[c.id],to:keep?'pile':'out'}];
 }
 function chergui(st,side,src){
   const dst=src==='S'?'M':'S'; const moved=st.zones[src]; st.zones[src]=[];
@@ -555,10 +577,13 @@ function runExchange(st,F,S,fCard,P,sCard){
   const cries=[{side:S,cry:'Bouahd',pts:1}]; let lead=S, pts=1; const drops={p:0,r:0};
   if(want(F)){ const c=spare(F); if(c){ remove(st.hand[F],c); drops[F]++; cries.push({side:F,cry:'Btlata',pts:3}); lead=F; pts=3;
     if(want(S)){ const d=spare(S); if(d){ remove(st.hand[S],d); drops[S]++; cries.push({side:S,cry:'Bkhmsa',pts:5}); lead=S; pts=5; } } } }
-  remove(st.zones.M,fCard); st.out+=2+drops.p+drops.r; addPts(st,lead,pts,pts>=5?'Échange : Bkhmsa':pts>=3?'Échange : Btlata':'Échange : Bouahd'); st.xp[lead]+=pts;
+  remove(st.zones.M,fCard);
+  const xcards=[fCard,...(sCard?[sCard]:[])]; const keepX=cp(st,lead,'dabbagh');
+  if(keepX){ st.piles[lead].push(...xcards); st.out+=drops.p+drops.r; } else st.out+=2+drops.p+drops.r;
+  addPts(st,lead,pts,pts>=5?'Échange : Bkhmsa':pts>=3?'Échange : Btlata':'Échange : Bouahd'); st.xp[lead]+=pts;
   const comp={p:0,r:0};
   for(const side of ['p','r']) for(let k=0;k<drops[side];k++){ const c=st.reserve[side].shift(); if(c){ st.hand[side].push(c); comp[side]++; } }
-  return [{kind:'exchange',cries,lead,pts,drops,comp,v,ids:[fCard.id,...(sCard?[sCard.id]:[])],played:sCard?sCard.id:null,first:F,to:'out'}];
+  return [{kind:'exchange',cries,lead,pts,drops,comp,v,ids:[fCard.id,...(sCard?[sCard.id]:[])],played:sCard?sCard.id:null,first:F,to:keepX?'pile':'out',side:keepX?lead:undefined}];
 }
 function moveRec(m){ if(!m||!m.card) return {pass:true}; return {v:m.card.v,zone:m.zone,bar:m.bar?m.bar.name:null,v2:m.card2?m.card2.v:null,esc:!!m.escalate}; }
 function playTurn(st,pm0,rm0){
@@ -700,7 +725,7 @@ function finish(st){
 // ---------- Économie du marché ----------
 const DUP_MAX=3;
 const PRICES={thin:3,dup:8,gild:4,seal:3,corp:6,bar:5,unbar:2,uncorp:3,add:4,swap:6};
-function solde(st){ return 4+Math.min(4,Math.max(0,st.score.p-st.score.r-1))+(st.corps.includes('sakka')?2:0); }
+function solde(st){ return 4+Math.min(4,Math.max(0,st.score.p-st.score.r-1))+(st.corps.includes('garrab')?2:0); }
 function marketOffers(run,stageIdx){
   const r=mulberry(run.seed*977+stageIdx*131);
   const free=Object.keys(CORPS).filter(k=>!run.corps.includes(k));
@@ -733,6 +758,7 @@ function buyDup(run,cardId,newId){
 }
 function consecrateWhy(run,card,fx){ if(!FX[fx]) return 'Type inconnu.'; if(!card) return 'Carte inconnue.'; if(card.fx===fx) return 'Cette carte est déjà de ce type.'; if(run.sel<FX_PRICE[fx]) return 'Il vous faut '+FX_PRICE[fx]+' sel.'; return ''; }
 function consecrate(run,cardId,fx){ const c=run.deck.find(x=>x.id===cardId); if(consecrateWhy(run,c,fx)) return false; c.fx=fx; c.s=FX[fx].suit; run.sel-=FX_PRICE[fx]; return true; }
+function migrateCorps(run){ if(run&&run.corps) run.corps=run.corps.map(k=>k==='sakka'?'garrab':k); return run; }
 function migrateDeck(run){ for(const c of run.deck){ if(c.fx===undefined){ c.fx=c.gilded?'oros':c.sealed?'bastos':null; } c.s=c.fx?FX[c.fx].suit:'N'; delete c.gilded; delete c.sealed; } return run; }
 function absentValues(deck){ const have=new Set(deck.map(c=>c.v)); return VALUES.filter(v=>!have.has(v)); }
 function deckWith(deck,op){
@@ -796,13 +822,15 @@ const SUIT_SVG={
 const SUIT_NAME={B:'Bâtons',C:'Coupes',E:'Épées',D:'Deniers'};
 SUIT_SVG.N='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.6l4 4.4-4 4.4-4-4.4z"/></svg>';
 const ZONE={S:'Souk',M:'Médina'}, ZONE_AT={S:'au Souk',M:'en Médina'};
+
+
 const G={mode:'caravanier',daily:false,tuto:null,saved:null,copied:false,settings:{sound:true,hints:true,anim:true,tutoSeen:false},stats:{runs:0,wins:0,stagesWon:0,best:0},screen:'title',starter:'mixte',seed:Math.floor(100000+Math.random()*899999),mods:{ech:false,bar:false},run:null,m:null,
   sel:null,sel2:null,barSel:null,escalate:false,last:null,offers:null,sheet:null,stack:null,nv:null,confirm:null,rules:false,msg:null,pending:null};
 
 function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function cardHTML(c,o={}){
   const fx=c.fx||null, F=fx&&FX[fx]?FX[fx]:null;
-  const cls=['card',o.small?'sm':'',o.selected?'sel':'',F?'fx-'+fx:'neutral',o.pairable?'pairable':'',o.dim?'dim':'',c.owner&&o.owner?('own-'+c.owner):''].filter(Boolean).join(' ');
+  const cls=['card',o.cls||'',o.small?'sm':'',o.selected?'sel':'',F?'fx-'+fx:'neutral',o.pairable?'pairable':'',o.dim?'dim':'',c.owner&&o.owner?('own-'+c.owner):''].filter(Boolean).join(' ');
   const tag=o.action?'button':(o.inert?'span':'div');
   const attrs=o.action?` type="button" data-act="${o.action}" data-id="${o.id!=null?o.id:c.id}"${o.extra||''} aria-pressed="${!!o.selected}"`:'';
   const label=`${c.v}${F?', type '+F.name+' ('+F.role.toLowerCase()+')':', neutre'}`;
@@ -820,7 +848,7 @@ function evText(e){
     case 'tringa': return `Tringa ! +${e.pts}`;
     case 'captureM': return e.denied?`${W} ${me?'cassez':'casse'} ${e.denied} base${e.denied>1?'s':''} en Médina`:`${W} ${me?'capturez':'capture'} en Médina${e.kept?' (gardé par le Dabbagh)':' (hors jeu)'}`;
     case 'pose': return `${W} ${me?'posez':'pose'} ${ZONE_AT[e.zone]}`;
-    case 'exchange': { const last=e.cries[e.cries.length-1]; const comp=(e.comp.p+e.comp.r)?` · ${e.comp.p+e.comp.r} carte${e.comp.p+e.comp.r>1?'s':''} de la Réserve compense${e.comp.p+e.comp.r>1?'nt':''}`:''; return `Échange — ${cries(e)} : ${who(e.lead)} ${e.lead==='p'?'marquez':'marque'} +${e.pts}${comp}`; }
+    case 'exchange': { const last=e.cries[e.cries.length-1]; const comp=(e.comp.p+e.comp.r)?` · ${e.comp.p+e.comp.r} carte${e.comp.p+e.comp.r>1?'s':''} de la Réserve compense${e.comp.p+e.comp.r>1?'nt':''}`:''; return `Échange — ${cries(e)} : ${who(e.lead)} ${e.lead==='p'?'marquez':'marque'} +${e.pts}${e.to==='pile'?' · les cartes rejoignent la pile (Dabbagh)':''}${comp}`; }
     case 'bar': return `${W} ${me?'allumez':'allume'} ${BAR[e.name].name}${e.cancelled?' — annulée par Qontra':''}`;
     case 'kelma': return `Kelma : ${me?'vous annoncez':'il annonce'} la valeur ${e.v}`;
     case 'khatf': return `Khatf : ${me?'vous prenez':'il prend'} un ${e.v} ${ZONE_AT[e.zone]}${e.zone==='S'?' (dans sa pile)':' (hors jeu)'}`;
@@ -843,6 +871,7 @@ function store(){ try{ const raw=localStorage.getItem(LS_KEY); return raw?(JSON.
 function storeSet(o){ try{ localStorage.setItem(LS_KEY,JSON.stringify(o)); }catch(e){} }
 const RESUMABLE=['travel','intro','game','result','reward','market'];
 function persist(){
+  if(G.wt){ const d0=store(); d0.settings=G.settings; d0.stats=G.stats; storeSet(d0); return; }
   const d=store(); d.settings=G.settings; d.stats=G.stats;
   d.save=(G.run&&RESUMABLE.includes(G.screen))?{run:G.run,screen:G.screen==='game'?'intro':G.screen,offers:G.offers||null}:null;
   storeSet(d);
@@ -1181,7 +1210,7 @@ function journalSheet(){
 
 // ---------- Écran de manche : zones cliquables, verbosité selon le mode ----------
 // Pèlerin = initiation (aperçu complet, conseils, règles). Caravanier et Maalem = sobres.
-function isVerbose(){ return !G.run || G.run.mode==='pelerin'; }
+function isVerbose(){ return !G.run || G.run.mode==='pelerin' || !!G.wt; }
 // Points gagnés au dernier tour, en une ligne (version sobre)
 function compactLast(m){
   const H=m.hist||[]; if(!H.length) return '';
@@ -1207,7 +1236,7 @@ function zoneBlock(m,z,target,pv,tie){
     summary=tie?`<span class="zprev">Pièce : Face ${d(pv.a.dps)} · Pile ${d(pv.b.dps)} pt</span>`
                :`<span class="zprev">Vous ${d(pv.dps)} pt · pile ${d(pv.dpp)}</span><span class="zprev riv">Rival ${d(pv.drs)} pt</span>`;
   }
-  return `<button type="button" class="zone z${z} target" id="zone-${z}" data-act="play" data-z="${z}" aria-label="${title}">${body}<span class="zsum">${title}${summary}</span></button>`;
+  return `<button type="button" class="zone z${z} target${wtTargetZone(z)?' wt-target':''}" id="zone-${z}" data-act="play" data-z="${z}" aria-label="${title}">${body}<span class="zsum">${title}${summary}</span></button>`;
 }
 function viewGame(){
   const m=G.m, s=stageDef(m.stage), it=m.intent, verbose=isVerbose();
@@ -1231,7 +1260,7 @@ function viewGame(){
     : (verbose?`<span class="faint">${later?`Pas de pioche au prochain tour. La caravane arrive au tour ${later}.`:'Plus de pioche avant la fin de la manche.'}</span>`:'');
   const unseen=rivalUnseen(m), falOn=m.turn<=m.falUntil;
   const pairing=G.barSel&&G.barSel.name==='AOUD';
-  const handH=m.hand.p.map(c=>cardHTML(c,{action:'pick',cid:true,selected:c.id===G.sel||c.id===G.sel2,pairable:pairing&&m.hand.p.some(x=>x!==c&&x.v===c.v),dim:pairing&&!m.hand.p.some(x=>x!==c&&x.v===c.v)})).join('');
+  const handH=m.hand.p.map(c=>cardHTML(c,{action:'pick',cid:true,cls:wtIsTarget(c)?'wt-target':'',selected:c.id===G.sel||c.id===G.sel2,pairable:pairing&&m.hand.p.some(x=>x!==c&&x.v===c.v),dim:pairing&&!m.hand.p.some(x=>x!==c&&x.v===c.v)})).join('');
   const lastLine=verbose?(G.last?`<section class="last" aria-live="polite"><span class="wach">Wach !</span> ${G.last.map(esc).join(' · ')}</section>`:''):(compactLast(m)?`<section class="last compact" aria-live="polite">${esc(compactLast(m))}</section>`:'');
   return `<main class="game ${verbose?'verbose':'sober'}">
     <header class="top"><div><span class="crumb">${esc(stageLabel(m.stage))} · ${esc(s.rival)}${verbose?` · ${esc(modeBadge(G.run))}`:''}</span></div><div class="turn">Tour <b>${Math.min(m.turn,TURNS)}</b>/8</div></header>
@@ -1359,11 +1388,17 @@ function swapSheet(){
     <div class="swaps">${rows}</div>
     <button type="button" class="ghost" data-act="newback">Retour</button></div></div>`;
 }
+// Deck de départ affiché comme dans la construction de deck : piles de cartes regroupées par valeur
+// (éléments non interactifs : le deck entier est déjà un bouton, et un bouton ne peut pas en contenir d'autres)
+function starterStacks(vals){
+  const g=groupDeck(vals.map(v=>({v,fx:null})));
+  return `<span class="stacks st-stacks" aria-hidden="true">${g.map(x=>`<span class="stack ${x.count>1?'multi':''}">${cardHTML({v:x.v,fx:x.fx},{inert:true})}${x.count>1?`<span class="cnt">×${x.count}</span>`:''}</span>`).join('')}</span>`;
+}
 function viewTitle(){
   const sv=G.saved, st=G.stats;
   const starters=Object.entries(STARTERS).map(([k,s])=>`
     <button type="button" class="starter ${G.starter===k?'on':''}" data-act="starter" data-k="${k}" aria-pressed="${G.starter===k}">
-      <span class="st-name">${esc(s.name)}</span><span class="st-desc">${esc(s.desc)}</span>${hist(countsOf(s.vals),4)}
+      <span class="st-name">${esc(s.name)}</span><span class="st-desc">${esc(s.desc)}</span>${starterStacks(s.vals)}
       ${(s.corps&&s.corps.length)?`<span class="st-bar">${s.corps.map(c=>`<span class="bchip sm" title="${esc(CORPS[c].text)}"><b>${esc(CORPS[c].name)}</b></span>`).join('')}</span>`:''}
       ${G.mods.bar?`<span class="st-bar">${s.bar.map(barChip).join('')}</span>`:''}
     </button>`).join('');
@@ -1389,7 +1424,7 @@ function viewTitle(){
     <div class="seed"><label for="seed">Graine du voyage</label><div class="seedrow"><input id="seed" inputmode="numeric" value="${G.seed}" data-act="seed"/><button type="button" class="ghost sm" data-act="daily">Caravane du jour</button></div>
       <span class="hint">${G.daily?`Caravane du ${esc(dailyLabel())} : tous les joueurs ont la même graine aujourd\u2019hui.`:'Même graine, même voyage.'}</span></div>
     <button type="button" class="primary" data-act="start">${sv?'Abandonner le voyage en cours et repartir':'Partir pour Tanger'}</button>
-    <div class="row2"><button type="button" class="ghost sm" data-act="tuto">Didacticiel</button><button type="button" class="ghost sm" data-act="settings">Réglages</button></div>
+    <div class="row2"><button type="button" class="ghost sm" data-act="wtstart">Parcours guidé</button><button type="button" class="ghost sm" data-act="tuto">Aperçu rapide</button><button type="button" class="ghost sm" data-act="settings">Réglages</button></div>
     ${rulesBlock()}
   </main>`;
 }
@@ -1548,13 +1583,14 @@ function settingsSheet(){
     ${tog('sound','Sons','Petits effets sonores synthétisés, jamais de musique.')}
     ${tog('hints','Conseils','Une ligne d\u2019aide contextuelle pendant les manches.')}
     ${tog('anim','Animations','Les cartes glissent, s\u2019entrechoquent et rejoignent la pile. Un tap passe l\u2019animation.')}
-    <button type="button" class="ghost" data-act="tuto">Revoir le didacticiel</button>
+    <button type="button" class="ghost" data-act="tuto">Revoir l\u2019aperçu rapide</button>
+    <button type="button" class="ghost" data-act="wtstart">Rejouer le parcours guidé</button>
     <button type="button" class="ghost" data-act="wipe">${G.confirm==='wipe'?'Confirmer : tout effacer':'Effacer sauvegarde et statistiques'}</button>
     <button type="button" class="ghost" data-act="closesheet">Fermer</button></div></div>`;
 }
-function quitBtn(){ return G.run?`<button type="button" class="ghost sm quit" data-act="quitask">Quitter le voyage</button>`:''; }
+function quitBtn(){ if(G.wt) return `<button type="button" class="ghost sm quit" data-act="wtquit">Quitter le parcours</button>`; return G.run?`<button type="button" class="ghost sm quit" data-act="quitask">Quitter le voyage</button>`:''; }
 function quitSheet(){ return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Quitter le voyage"><div class="sheet-in"><h2>Quitter le voyage ?</h2><p>Le voyage en cours s\u2019arrête. Le sel, le deck, les corporations, les mèches et les barakas sont perdus. Vous revenez à l\u2019accueil, où vous pourrez en commencer un autre.</p><button type="button" class="primary quit" data-act="quit">Quitter le voyage</button><button type="button" class="ghost" data-act="closesheet">Continuer le voyage</button></div></div>`; }
-function globalOverlays(){ return (G.tuto!=null?tutoOverlay():'')+(G.sheet==='settings'?settingsSheet():'')+(G.sheet==='quit'?quitSheet():''); }
+function globalOverlays(){ return (G.tuto!=null?tutoOverlay():'')+(G.sheet==='settings'?settingsSheet():'')+(G.sheet==='quit'?quitSheet():'')+(G.sheet==='wtask'?wtAskSheet():''); }
 const VIEWS={title:viewTitle,travel:viewTravel,intro:viewIntro,game:viewGame,result:viewResult,reward:viewReward,market:viewMarket,over:viewOver,end:viewEnd};
 
 // ---------- ACTIONS ----------
@@ -1571,15 +1607,17 @@ function doPlay(spec,flipped){
   Sfx.play(res.ev.some(e=>e.kind==='ronda'||e.kind==='tringa'||e.kind==='exchange')?'cry':res.ev.some(e=>e.kind==='bar')?'bar':'card');
   resetPick(); advance(m);
   const animate=Anim.willPlay(snapA,res.ev);
-  if(m.over){ if(animate) G.endPending=true; else endManche(); }
+  if(m.over&&!G.wt){ if(animate) G.endPending=true; else endManche(); }
   if(animate) Anim.queue(snapA,res.ev);
+  if(G.wt) wtAfter(spec,res,card);
 }
 const ACT={
   starter:d=>{G.starter=d.k;}, mod:d=>{G.mods[d.k]=!G.mods[d.k];}, mode:d=>{G.mode=d.k;}, rules:()=>{G.rules=!G.rules;},
   daily:()=>{ G.seed=dailySeed(); G.daily=true; },
-  start:()=>{ NEXT_TPL=2000; G.run=newRun({seed:G.seed,starter:G.starter,mods:G.mods,mode:G.mode,route:'route'}); G.stats.runs++; G.saved=null; G.m=null; G.offers=null; G.msg=null; G.sheet=null; G.copied=false; G.screen='travel'; persist(); },
-  restartsame:()=>{ const r=G.run; G.seed=r.seed; G.starter=r.starter; G.mods={...r.mods}; G.mode=r.mode; ACT.start(); },
-  resume:()=>{ const s=G.saved; if(!s) return; G.run=migrateDeck(s.run); G.offers=s.offers||null; NEXT_TPL=Math.max(2000,...G.run.deck.map(c=>c.id+1)); G.seed=G.run.seed; G.starter=G.run.starter; G.mods={...G.run.mods}; G.mode=G.run.mode;
+  start:()=>{ if(!G.settings.wtDone&&!G.saved){ G.sheet='wtask'; return; } ACT.realstart(); },
+  realstart:()=>{ NEXT_TPL=2000; G.run=newRun({seed:G.seed,starter:G.starter,mods:G.mods,mode:G.mode,route:'route'}); G.stats.runs++; G.saved=null; G.m=null; G.offers=null; G.msg=null; G.sheet=null; G.copied=false; G.screen='travel'; persist(); },
+  restartsame:()=>{ const r=G.run; G.seed=r.seed; G.starter=r.starter; G.mods={...r.mods}; G.mode=r.mode; ACT.realstart(); },
+  resume:()=>{ const s=G.saved; if(!s) return; G.run=migrateCorps(migrateDeck(s.run)); G.offers=s.offers||null; NEXT_TPL=Math.max(2000,...G.run.deck.map(c=>c.id+1)); G.seed=G.run.seed; G.starter=G.run.starter; G.mods={...G.run.mods}; G.mode=G.run.mode;
     G.m=null; G.saved=null; G.msg=null; G.sheet=null; G.screen=(s.screen==='result'&&!G.run.result)?'intro':s.screen; },
   travelgo:()=>{ G.screen='intro'; persist(); },
   enter:()=>{ G.m=newManche(G.run,G.run.stage); resetPick(); G.last=null; G.pending=null; G.sheet=null; G.screen='game'; persist(); },
@@ -1649,7 +1687,7 @@ const ACT={
   wipe:()=>{ if(G.confirm==='wipe'){ try{ localStorage.removeItem(LS_KEY); }catch(e){} G.stats={runs:0,wins:0,stagesWon:0,best:0}; G.settings={sound:true,hints:true,anim:true,tutoSeen:true}; G.saved=null; G.run=null; G.m=null; G.confirm=null; G.sheet=null; G.screen='title'; }
     else G.confirm='wipe'; },
 };
-function dispatch(act,data){ if(ACT[act]){ ACT[act](data||{}); return true; } return false; }
+function dispatch(act,data){ if(G.wt&&G.wt.phase!=='play'&&['pick','play','bar','khatf','kv','cs','esc','pass'].includes(act)) return false; if(ACT[act]){ ACT[act](data||{}); return true; } return false; }
 (function init(){
   const d=store();
   G.settings=Object.assign({sound:true,hints:true,anim:true,tutoSeen:false},d.settings||{});
@@ -1708,7 +1746,7 @@ function render(){
   else if(key){ const [a,b]=key.split(':'); const el=[...app.querySelectorAll(`[data-act="${a}"]`)].find(e=>kf(e.dataset)===b); if(el) el.focus({preventScroll:true}); }
   if(G.sheet){ const s=app.querySelector('.sheet button:not(:disabled)'); if(s) s.focus({preventScroll:true}); }
   if(G.anim) Anim.play();
-  if(G.screen==='game'&&G.pending&&!flipping){ flipCoin(G.m.coin,()=>{ dispatch('resolve'); render(); }); }
+  if((G.screen==='game'||G.screen==='tuto')&&G.pending&&!flipping){ flipCoin(G.m.coin,()=>{ dispatch('resolve'); render(); }); }
 }
 app.addEventListener('click',e=>{
   if(Anim.busy()){ e.preventDefault(); Anim.skip(); return; }
@@ -1721,6 +1759,297 @@ app.addEventListener('change',e=>{ if(e.target.dataset.act==='seed'){ const v=pa
 document.addEventListener('pointerdown',()=>{ if(Anim.busy()) Anim.skip(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!document.querySelector('.flip-ov')){ if(G.tuto!=null){ ACT.tutoend(); render(); } else if(G.sheet){ G.sheet=null; G.stack=null; G.confirm=null; render(); } } });
 render();
+
+// ---------- Parcours guidé (walkthrough interactif) ----------
+// Chaque leçon est un plateau scripté joué par le VRAI moteur : on demande un geste précis, le moteur calcule le résultat,
+// et l'explication affichée est vérifiée par `expect` (voir tests). Le parcours dépend du voyage choisi : modules, deck, mode.
+const WT_FX_SUIT={oros:'D',copas:'C',espadas:'E',bastos:'B'};
+function wtCard(x,own){
+  if(typeof x==='object') return mk(x.v,x.fx?FX[x.fx].suit:'N',{fx:x.fx||null,owner:x.own||null});
+  return mk(x,'N',{owner:own||null});
+}
+// Construit un plateau à partir d'une description courte
+function wtBoard(m,s){
+  const C=wtCard;
+  m.turn=s.turn||1; m.coin=s.coin||'p'; m.caplog=[]; m.pl=m.pl.filter(x=>x.turn===0); m.hist=[]; m.out=0; m.last=null;
+  m.hand.p=(s.hand||[]).map(x=>C(x)); m.draw.p=(s.draw||[]).map(x=>C(x)); m.reserve.p=(s.reserve||[]).map(x=>C(x));
+  m.draw.r=[]; m.reserve.r=(s.rreserve||[]).map(x=>C(x));
+  m.zones.S=(s.S||[]).map(x=>C(x)); m.zones.M=(s.M||[]).map(x=>C(x));
+  m.piles.p=Array.from({length:(s.pile||[0,0])[0]},()=>C(1)); m.piles.r=Array.from({length:(s.pile||[0,0])[1]},()=>C(1));
+  m.parked={p:{},r:{}}; for(const side of ['p','r']) for(const v of ((s.parked||{})[side]||[])) m.parked[side][v]=[C(v,side),C(v)];
+  m.annM={p:(s.annM||[0,0])[0],r:(s.annM||[0,0])[1]};
+  const base=m.mods.bar?POWDER:0; m.score={p:base+(s.score||[0,0])[0],r:base+(s.score||[0,0])[1]}; m.bonus={p:0,r:0};
+  m.missaPts={p:0,r:0}; m.corpPts={p:0,r:0}; m.xp={p:0,r:0}; m.spent={p:0,r:0}; m.bar.pot=0; m.bar.kelma={p:null,r:null}; m.falUntil=0; m.moul=null; m.over=false; m.win=null;
+  m.bar.hand.p=s.bar?[...s.bar]:(m.mods.bar?[...G.run.bar]:[]); m.bar.hand.r=[];
+  m.rcorps=[]; m.corps=s.corps?[...s.corps]:[];
+  m.hand.r=(s.rhand||[]).map(x=>C(x));
+  const it=s.intent;
+  if(it){ const rc=C(it.v); m.hand.r.unshift(rc); m.intent={card:rc,zone:it.zone}; if(it.bar){ m.intent.bar={name:it.bar}; m.bar.hand.r=[it.bar]; } }
+  else m.intent={card:null,zone:null};
+  return m;
+}
+const wtHas=(opts,k)=>!!(opts.mods&&opts.mods[k]);
+// ---- Les leçons. target = geste attendu ; expect = vérification de ce que le moteur produit.
+function wtLessons(o){
+  const L=[], T=TURNS;
+  const bar=wtHas(o,'bar'), ech=wtHas(o,'ech'), st=STARTERS[o.starter]||STARTERS.mixte;
+  L.push({id:'intro',title:'Bienvenue sur la route du sel',info:true,
+    text:`Vous allez traverser quatre villes et seize épreuves. Chaque épreuve est une <b>manche</b> de ${T} tours contre un rival qui annonce sa carte avant que vous ne choisissiez la vôtre. Ce parcours vous fait jouer chaque règle sur un vrai plateau, avec le vrai moteur du jeu. ${wtHas(o,'ech')||wtHas(o,'bar')?'Il inclut aussi les modules que vous avez choisis : '+[wtHas(o,'ech')?'<b>Échanges</b>':'',wtHas(o,'bar')?'<b>Baroud</b>':''].filter(Boolean).join(' et ')+'.':'Vous n\u2019avez activé aucun module : le parcours couvre les règles de base.'}`});
+  L.push({id:'souk',title:'Capturer au Souk',steps:[
+    {goal:'Touchez le <b>6</b> de votre main, puis le <b>Souk</b>.',target:{v:6,zone:'S'},
+     board:{hand:[6,3,11,2],S:[6,6,12],intent:{v:2,zone:'M'}},
+     explain:'Votre 6 prend <b>tous les 6</b> du Souk : deux cartes, plus la vôtre. Les trois rejoignent <b>votre pile</b>. Aucun point tout de suite : la pile servira au Moul Souk, en fin de manche.',
+     expect:(m)=>m.piles.p.length===3&&m.zones.S.length===1},
+    {goal:'Touchez le <b>7</b>, puis le <b>Souk</b>.',target:{v:7,zone:'S'},
+     board:{hand:[7,3,11],S:[4,10],intent:{v:12,zone:'M'}},
+     explain:'Pas de 7 sur le plateau, donc rien à prendre : votre 7 <b>se pose</b>. Il reste libre : le rival pourra le capturer s\u2019il joue un 7.',
+     expect:(m)=>m.piles.p.length===0&&m.zones.S.length===3}]});
+  L.push({id:'chain',title:'La chaîne de valeurs',steps:[
+    {goal:'Touchez le <b>3</b>, puis le <b>Souk</b>.',target:{v:3,zone:'S'},
+     board:{hand:[3,2,11],S:[3,4,5,10],intent:{v:12,zone:'M'}},
+     explain:'Après les 3, votre carte prend les valeurs <b>juste au-dessus</b> : le 4, puis le 5. <b>Deux marches au plus</b> : le 10 reste. L\u2019ordre des valeurs est 1, 2, 3, 4, 5, 6, 7, puis 10, 11, 12.',
+     expect:(m)=>m.piles.p.length===4&&m.zones.S.length===1&&m.zones.S[0].v===10}]});
+  L.push({id:'missa',title:'Vider le Souk : la Missa',steps:[
+    {goal:'Touchez le <b>5</b>, puis le <b>Souk</b>.',target:{v:5,zone:'S'},
+     board:{hand:[5,2,11],S:[5],intent:{v:12,zone:'M'}},
+     explain:'Vous avez pris la dernière carte du Souk d\u2019un seul coup : <b>Missa, +1 point</b>, tout de suite. Les points de Missa, de Ronda et de Tringa sont acquis immédiatement.',
+     expect:(m)=>m.score.p-(m.mods.bar?POWDER:0)===1&&m.missaPts.p===1}]});
+  L.push({id:'medina',title:'La Médina : capturer, c\u2019est priver',steps:[
+    {goal:'Touchez le <b>6</b>, puis la <b>Médina</b>.',target:{v:6,zone:'M'},
+     board:{hand:[6,2,11],M:[{v:6,own:'r'}],intent:{v:12,zone:'S'}},
+     explain:'En Médina, <b>ce qu\u2019on capture sort du jeu</b> : rien n\u2019entre dans votre pile, et vous ne marquez rien. Mais le rival a perdu sa <b>base</b> (une carte posée seule, qui porte sa couleur) : sa Ronda est brisée. C\u2019est le <b>déni</b>.',
+     expect:(m)=>m.piles.p.length===0&&m.zones.M.length===0&&m.out>=2}]});
+  L.push({id:'ronda',title:'La Ronda : une paire en Médina',steps:[
+    {goal:'Touchez le <b>6</b>, puis la <b>Médina</b> : c\u2019est votre base.',target:{v:6,zone:'M'},
+     board:{hand:[6,6,11],M:[],intent:{v:12,zone:'S'}},
+     explain:'Posée sans rien capturer, votre carte devient une <b>base</b>. Si le rival la prenait, vous perdriez la Ronda en préparation.',
+     expect:(m)=>m.zones.M.length===1&&m.zones.M[0].owner==='p'},
+    {goal:'Touchez le <b>second 6</b>, puis la <b>Médina</b>.',target:{v:6,zone:'M'},prep:{intent:{v:11,zone:'S'}},
+     explain:'Votre seconde carte capture <b>votre propre base</b> : <b>Ronda, +2 points</b>. La paire se gare au <b>coin Ronda</b>. Un troisième 6 plus tard fera une Tringa.',
+     expect:(m)=>m.annM.p===2&&!!m.parked.p[6]}]});
+  L.push({id:'tringa',title:'La Tringa et le plafond',steps:[
+    {goal:'Touchez le <b>4</b>, puis la <b>Médina</b>.',target:{v:4,zone:'M'},
+     board:{hand:[4,2,11],M:[],parked:{p:[4]},annM:[2,0],score:[2,0],intent:{v:12,zone:'S'}},
+     explain:'Le <b>troisième exemplaire</b> d\u2019une paire garée fait une <b>Tringa, +3 points</b>. Les annonces (Ronda et Tringa) sont plafonnées à <b>6 points par manche</b> : vous en êtes à 5 sur 6.',
+     expect:(m)=>m.annM.p===5&&m.score.p-(m.mods.bar?POWDER:0)===5}]});
+  L.push({id:'order',title:'Qui joue en premier ?',steps:[
+    {goal:'Touchez le <b>6</b>, puis le <b>Souk</b>.',target:{v:6,zone:'S'},
+     board:{hand:[6,2,11],S:[6,12],intent:{v:7,zone:'S'}},
+     explain:'Dans une même zone, la <b>plus haute carte résout en premier</b> : le 7 du rival se pose d\u2019abord. Puis votre 6 prend le 6, <b>et le 7 posé juste avant</b>, par la chaîne. Il faut toujours lire l\u2019intention du rival avant de jouer.',
+     expect:(m)=>m.piles.p.length===3&&m.zones.S.length===1}]});
+  L.push({id:'coin',title:'Même rang : pile ou face',steps:[
+    {goal:'Touchez le <b>6</b>, puis le <b>Souk</b>. Le rival joue aussi un 6.',target:{v:6,zone:'S'},
+     board:{hand:[6,2,11],S:[6,12],intent:{v:6,zone:'S'},coin:'p'},
+     explain:'Deux cartes de <b>même rang dans la même zone</b> : une <b>pièce</b> décide qui résout d\u2019abord. L\u2019aperçu affichait les deux issues avant votre coup. Ici <b>Face</b> : vous résolvez en premier et prenez le 6 ; le 6 du rival se pose ensuite.',
+     expect:(m)=>m.piles.p.length===2}]});
+  L.push({id:'moul',title:'Fin de manche : le Moul Souk',steps:[
+    {goal:'Dernier tour : touchez le <b>3</b>, puis le <b>Souk</b>.',target:{v:3,zone:'S'},
+     board:{turn:T,hand:[3],S:[11],pile:[6,4],intent:{v:12,zone:'M'}},
+     explain:`Après le dernier tour, la <b>plus grosse pile</b> gagne le <b>Moul Souk, +${MOUL}</b> : ici 6 cartes contre 4. À égalité, personne. Le bouton <b>Journal</b> détaille tous vos points, tour par tour.`,
+     expect:(m)=>m.over&&m.moul==='p'&&m.score.p-(m.mods.bar?POWDER:0)===MOUL}]});
+  L.push({id:'caravan',title:'La caravane',info:true,
+    text:`Vous commencez chaque manche avec <b>4 cartes</b>. Aux tours <b>3, 5 et 7</b>, la caravane en apporte <b>2 de plus</b> ; elle montre à l\u2019avance les cartes que vous recevrez au prochain tour. Une manche utilise 10 cartes : si votre deck en compte davantage, le surplus attend en <b>Réserve</b>.`});
+  // types de cartes
+  L.push({id:'fx',title:'Les quatre types de cartes',steps:[
+    {goal:'<b>Oros</b> : touchez le <b>5</b> doré, puis le <b>Souk</b>.',target:{v:5,zone:'S'},
+     board:{hand:[{v:5,fx:'oros'},2,11],S:[5,12],intent:{v:3,zone:'M'}},
+     explain:'Un <b>Oros</b> compte <b>double</b> dans votre pile : deux cartes, valeur 3.',
+     expect:(m)=>m.piles.p.length===2&&pileValue(m,'p')===3},
+    {goal:'<b>Copas</b> : touchez le <b>4</b> Copas, puis la <b>Médina</b>.',target:{v:4,zone:'M'},
+     board:{hand:[{v:4,fx:'copas'},2,11],M:[{v:4,own:'p'}],intent:{v:12,zone:'S'}},
+     explain:'Une Ronda ou une Tringa qui utilise une carte <b>Copas</b> rapporte <b>1 point de plus</b>, hors plafond : Ronda 2 + 1 = 3 points.',
+     expect:(m)=>m.score.p-(m.mods.bar?POWDER:0)===3},
+    {goal:'<b>Espadas</b> : touchez le <b>5</b> Espadas, puis le <b>Souk</b>.',target:{v:5,zone:'S'},
+     board:{hand:[{v:5,fx:'espadas'},2,11],S:[6,12],intent:{v:3,zone:'M'}},
+     explain:'Sans carte identique sur le plateau, une carte <b>Espadas</b> capture la <b>valeur voisine</b> : ici le 6 (au-dessus d\u2019abord, sinon en dessous).',
+     expect:(m)=>m.piles.p.length===2},
+    {goal:'<b>Bastos</b> : touchez le <b>12</b>, puis le <b>Souk</b>, et regardez le rival.',target:{v:12,zone:'S'},
+     board:{hand:[12,2,11],M:[{v:5,own:'p',fx:'bastos'}],intent:{v:5,zone:'M'}},
+     explain:'Le rival jouait un 5 en Médina pour prendre votre base. Mais votre 5 est <b>Bastos</b> : il ne peut pas être pris. Son 5 se pose, et votre base est intacte.',
+     expect:(m)=>m.zones.M.some(c=>c.owner==='p'&&c.fx==='bastos')&&m.out===0}]});
+  if(st.corps&&st.corps.includes('haddad')){
+    L.push({id:'corp',title:'Votre corporation : Le Haddad',steps:[
+      {goal:'Touchez le <b>3</b>, puis le <b>Souk</b>.',target:{v:3,zone:'S'},
+       board:{hand:[3,2,11],S:[3,4,5,6,12],corps:['haddad'],intent:{v:12,zone:'M'}},
+       explain:'Une corporation est un <b>effet permanent</b> pour tout le voyage. Le Haddad pousse vos chaînes à <b>trois marches</b> et ajoute 1 à votre pile à chaque chaîne : ici 5 cartes, et un bonus.',
+       expect:(m)=>m.piles.p.length===5&&m.zones.S.length===1&&pileValue(m,'p')===6}]});
+  } else {
+    L.push({id:'corp',title:'Les corporations',info:true,
+      text:'Vous n\u2019en avez aucune au départ. Au marché, vous pourrez en recruter (<b>6 sel</b>, trois au plus) : '+Object.values(CORPS).map(c=>`<b>${esc(c.name)}</b> (${esc(c.text.replace(/\.$/,''))})`).join(' ; ')+'.'});
+  }
+  if(ech){
+    L.push({id:'exch',title:'Module Échanges',steps:[
+      {goal:'Touchez le <b>5</b>, activez <b>Escalader si possible</b>, puis la <b>Médina</b>.',target:{v:5,zone:'M',esc:true},
+       board:{hand:[5,5,11],M:[],intent:{v:5,zone:'M'},coin:'p',reserve:[2]},
+       explain:'Même rang en Médina, et la carte du premier reste libre : un <b>échange</b> s\u2019ouvre. Le second annonce <b>Bouahd (+1)</b>. Le premier peut répondre <b>Btlata (+3)</b> en abattant un troisième exemplaire de sa main : seul le <b>dernier mot</b> compte. Ici vous marquez +3.',
+       expect:(m)=>m.xp.p===3},
+      {goal:'Touchez le <b>5</b>, puis la <b>Médina</b>, <b>sans escalader</b>.',target:{v:5,zone:'M',esc:false},
+       board:{hand:[5,5,11],M:[],intent:{v:5,zone:'M'},coin:'p',reserve:[2]},
+       explain:'Sans escalade, le rival garde le dernier mot : <b>Bouahd, +1 pour lui</b>. Escalader coûte une carte de votre main mais peut rapporter 3 ; si le rival a lui aussi un exemplaire de plus, il répond Bkhmsa (+5).',
+       expect:(m)=>m.xp.r===1}]});
+  }
+  if(bar){
+    L.push({id:'powder',title:'Module Baroud : la poudre',info:true,
+      text:`Chaque camp commence avec <b>${POWDER} de poudre</b>, comptée dans son score. Une <b>mèche</b> est une carte d\u2019action à usage unique par souk : on la prépare avant de jouer, et on la paie en poudre (le coût est écrit dessus). La poudre dépensée va dans la <b>Poudrière</b>, que le meneur ramasse à la fin de la manche. Une seule mèche par tour. Vous avez : ${st.bar.map(k=>`<b>${BAR[k].name}</b> (${BAR[k].fuse})`).join(' et ')}.`});
+    for(const k of st.bar) { const les=wtBarLesson(k); if(les) L.push(les); }
+    const others=BAR_ORDER.filter(k=>!st.bar.includes(k));
+    L.push({id:'bars',title:'Les autres mèches',info:true,
+      text:'Le marché en propose d\u2019autres : '+others.map(k=>`<b>${BAR[k].name}</b> (${BAR[k].fuse}) : ${esc(BAR[k].text)}`).join(' ')});
+  }
+  L.push({id:'rivals',title:'Les rivaux et les lieux',info:true,
+    text:'Chaque rival a son deck, parfois ses <b>corporations</b> et ses <b>mèches</b>, annoncés à l\u2019intro du souk. Certains lieux changent une règle (le Maalem résout toujours avant vous, la Médina n\u2019ouvre qu\u2019aux tours pairs…) et certains rivaux démarrent avec une <b>avance de points</b>. Tout est écrit avant d\u2019entrer.'});
+  L.push({id:'market',title:'Le marché et le voyage',info:true,
+    text:'Chaque souk gagné rapporte du <b>sel</b>. Au marché, il sert à recruter des corporations, remodeler votre deck (<b>Consacrer</b> une carte à un type, la <b>Dupliquer</b>, la <b>Retirer</b>, en <b>Ajouter</b> ou en <b>Remplacer</b> par une valeur nouvelle)'+(bar?', acquérir des mèches':'')+'. Après chaque Maalem, un <b>trophée</b> : 8 sel, une corporation ou une mèche offerte. Perdre n\u2019arrête pas toujours le voyage : tout dépend du mode.'});
+  L.push({id:'mode',title:'Votre mode de voyage',info:true,
+    text:o.mode==='pelerin'?'<b>Pèlerin</b> : entraînement. Vous pouvez retenter un souk autant de fois que vous voulez. L\u2019écran affiche tout (aperçus complets, conseils). Les autres modes sont plus sobres.'
+      :o.mode==='maalem'?'<b>Maalem</b> : la première défaite met fin au voyage. L\u2019écran est sobre : le plateau se joue directement, un tap sur le Souk ou la Médina joue la carte. Le détail complet reste dans le <b>Journal</b>.'
+      :'<b>Caravanier</b> : vous avez <b>3 baraka</b>. Chaque défaite en consomme une pour retenter le souk avec une nouvelle donne. Au marché, <b>15 sel</b> achètent une baraka (cinq au plus). L\u2019écran est sobre : un tap sur le Souk ou la Médina joue la carte.'});
+  return L;
+}
+// leçons de mèches (arsenal de départ)
+function wtBarLesson(k){
+  const bp=(v,z,extra)=>Object.assign({v,zone:z,bar:k},extra||{});
+  switch(k){
+    case 'ZERBA': return {id:'b-ZERBA',title:'Mèche Zerba : la hâte',steps:[{goal:'Touchez <b>Zerba</b>, le <b>5</b>, puis le <b>Souk</b>.',target:bp(5,'S'),
+      board:{hand:[5,2,11],S:[5,12],intent:{v:5,zone:'S'},coin:'r'},
+      explain:'Votre carte résout <b>en premier dans sa zone</b>, quelle que soit sa valeur. Sans elle, la pièce aurait donné la main au rival ; avec elle, vous prenez le 5. La mèche coûte <b>1 de poudre</b>.',
+      expect:(m)=>m.piles.p.length===2&&m.spent.p===BAR.ZERBA.fuse}]};
+    case 'SBER': return {id:'b-SBER',title:'Mèche Sber : la patience',steps:[{goal:'Touchez <b>Sber</b>, le <b>6</b>, puis le <b>Souk</b>. Le rival joue aussi un 6.',target:bp(6,'S'),
+      board:{hand:[6,2,11],S:[12],intent:{v:6,zone:'S'},coin:'r'},
+      explain:'Votre carte résout <b>en dernier</b> dans sa zone : le rival pose son 6 d\u2019abord (il n\u2019y a rien à prendre), puis votre 6 le <b>capture</b>. Sans Sber, la pièce aurait décidé. La mèche coûte <b>1 de poudre</b>.',
+      expect:(m)=>m.piles.p.length===2&&m.spent.p===BAR.SBER.fuse}]};
+    case 'AOUD': return {id:'b-AOUD',title:'Mèche Aoud : la paire d\u2019un coup',steps:[{goal:'Touchez <b>Aoud</b>, puis un <b>4</b> : sa jumelle se joint à lui. Enfin la <b>Médina</b>.',target:bp(4,'M',{pair:true}),
+      board:{hand:[4,4,11],M:[],reserve:[2],intent:{v:12,zone:'S'}},
+      explain:'Deux cartes identiques jouées ensemble en Médina : la seconde capture la première, <b>Ronda +2</b> immédiate, sans laisser de base exposée. Une carte de la Réserve compense la carte de plus que vous avez jouée.',
+      expect:(m)=>m.annM.p===2&&!!m.parked.p[4]}]};
+    case 'QONTRA': return {id:'b-QONTRA',title:'Mèche Qontra : le contre',steps:[{goal:'Touchez <b>Qontra</b>, le <b>5</b>, puis le <b>Souk</b>. Le rival allume Zerba.',target:bp(5,'S'),
+      board:{hand:[5,2,11],S:[5,12],intent:{v:5,zone:'S',bar:'ZERBA'},coin:'p'},
+      explain:'Qontra <b>annule la mèche que le rival allume ce tour</b> : sa Zerba n\u2019a aucun effet (il l\u2019a quand même payée). Il reste le pile ou face, que vous gagnez ici : vous prenez le 5.',
+      expect:(m)=>m.piles.p.length===2&&m.spent.r===BAR.ZERBA.fuse}]};
+    case 'KELMA': return {id:'b-KELMA',title:'Mèche Kelma : la parole donnée',steps:[
+      {goal:'Touchez <b>Kelma</b>, choisissez la valeur <b>6</b>, puis jouez le <b>3</b> au <b>Souk</b>.',target:bp(3,'S',{kv:6}),
+       board:{turn:6,hand:[3,6,11],S:[6,12],intent:{v:12,zone:'M'}},
+       explain:'Vous <b>annoncez une valeur</b> : si vous la capturez à un tour ultérieur, vous marquez <b>+3</b> ; sinon le rival marque +2. Elle coûte rien, mais engage votre parole.',
+       expect:(m)=>!!m.bar.kelma.p&&m.bar.kelma.p.v===6},
+      {goal:'Touchez le <b>6</b>, puis le <b>Souk</b>.',target:{v:6,zone:'S'},prep:{intent:{v:12,zone:'M'}},
+       explain:'Vous capturez le 6 annoncé : <b>parole tenue</b>. Le +3 est versé à la fin de la manche, et le Journal l\u2019affichera comme « Kelma tenue ».',
+       expect:(m)=>m.caplog.some(e=>e.side==='p'&&e.v===6)}]};
+    case 'CHERGUI': return {id:'b-CHERGUI',title:'Mèche Chergui : le vent d\u2019est',steps:[{goal:'Touchez <b>Chergui</b>, le sens <b>Médina → Souk</b>, puis jouez le <b>3</b> au <b>Souk</b>.',target:bp(3,'S',{src:'M'}),
+      board:{hand:[3,2,11],M:[{v:5,own:'r'}],S:[],intent:{v:12,zone:'M'}},
+      explain:'En fin de tour, toutes les cartes <b>libres</b> d\u2019une zone glissent dans l\u2019autre et perdent leur propriétaire : la base du rival quitte la Médina sans que vous l\u2019ayez capturée, et se retrouve au Souk, à prendre.',
+      expect:(m)=>m.zones.S.some(c=>c.v===5)&&m.zones.M.length===0}]};
+  }
+  return null;
+}
+// ---- État du parcours
+function wtOpts(){ return {mods:{ech:!!G.mods.ech,bar:!!G.mods.bar},starter:G.starter,mode:G.mode}; }
+function wtFlat(L){ const out=[]; L.forEach((les,li)=>{ if(les.info) out.push({li,lesson:les,info:true,n:0,total:1}); else les.steps.forEach((s,si)=>out.push({li,lesson:les,step:s,n:si,total:les.steps.length})); }); return out; }
+function wtCurrent(){ const w=G.wt; return w?w.flat[w.i]:null; }
+function wtEnterStep(first){
+  const w=G.wt, cur=wtCurrent(); if(!cur) return;
+  w.phase=cur.info?'info':'play'; w.msg=null; resetPick(); G.pending=null; G.last=null;
+  if(!cur.info){
+    if(!G.m||first) { G.m=newManche(G.run,0); }
+    if(cur.step.board) wtBoard(G.m,cur.step.board);
+    else if(cur.step.prep){ const p=cur.step.prep; const m=G.m; m.turn=Math.min(m.turn,T_LIMIT()); if(p.intent){ const rc=wtCard(p.intent.v); m.hand.r=[rc]; m.intent={card:rc,zone:p.intent.zone}; } m.draw.p=[]; }
+  }
+}
+const T_LIMIT=()=>TURNS-1;
+function wtStart(){
+  const o=wtOpts(); NEXT_TPL=2000;
+  G.wtReal=null;
+  G.run=newRun({seed:77,starter:o.starter,mods:o.mods,mode:o.mode,route:'route'});
+  G.wt={opts:o,flat:wtFlat(wtLessons(o)),i:0,phase:'info',msg:null,active:true,tries:0};
+  G.m=null; G.sheet=null; G.screen='tuto'; wtEnterStep(true);
+}
+function wtIsTarget(c){ const cur=wtCurrent(); if(!G.wt||!cur||cur.info||G.wt.phase!=='play') return false; const t=cur.step.target; return !!t&&c.v===t.v; }
+function wtTargetZone(z){ const cur=wtCurrent(); if(!G.wt||!cur||cur.info||G.wt.phase!=='play') return false; return cur.step.target.zone===z; }
+function wtAfter(spec,res,card){
+  const w=G.wt, cur=wtCurrent(), m=G.m, t=cur.step.target;
+  const played={v:card.v,zone:spec.bar&&spec.bar.name==='AOUD'?'M':spec.z,bar:spec.bar?spec.bar.name:null,esc:!!spec.esc,kv:spec.bar&&spec.bar.v,src:spec.bar&&spec.bar.src};
+  let ok=played.v===t.v&&played.zone===t.zone&&(t.bar?played.bar===t.bar:!played.bar)&&(t.esc===undefined||played.esc===t.esc)&&(t.kv===undefined||played.kv===t.kv)&&(t.src===undefined||played.src===t.src);
+  if(ok&&cur.step.expect&&!cur.step.expect(m,res)) ok=false;
+  w.phase=ok?'done':'retry'; w.tries=ok?0:w.tries+1; w.lastEv=res.ev;
+  w.msg=ok?null:'Presque ! Cette leçon attend un geste précis : relisez la consigne. Le plateau a été remis comme avant.';
+}
+function wtNext(){
+  const w=G.wt;
+  if(w.phase==='retry'){ let j=w.i; while(j>0&&!w.flat[j].info&&w.flat[j].step.board===undefined&&w.flat[j-1].lesson===w.flat[j].lesson) j--; w.i=j; wtEnterStep(false); return; }
+  w.i++; if(w.i>=w.flat.length){ wtFinish(); return; }
+  wtEnterStep(false);
+}
+function wtSkipLesson(){ const w=G.wt, li=w.flat[w.i].li; let j=w.i; while(j<w.flat.length&&w.flat[j].li===li) j++; if(j>=w.flat.length){ wtFinish(); return; } w.i=j; wtEnterStep(false); }
+function wtFinish(){
+  const o=G.wt.opts; G.settings.wtDone=true; const d=store(); d.settings=G.settings; d.stats=G.stats; storeSet(d);
+  G.wt=null; G.m=null; G.run=null; G.screen='title'; G.sheet=null;
+  G.starter=o.starter; G.mods=o.mods; G.mode=o.mode;
+  ACT.start();
+}
+function wtQuit(){ G.wt=null; G.m=null; G.run=null; G.screen='title'; G.sheet=null; resetPick(); G.pending=null; G.anim=null; G.endPending=false; }
+// solution automatique du geste attendu : sert au bouton « Montrez-moi » et aux tests
+function wtSolve(){
+  const cur=wtCurrent(); if(!cur||cur.info) return false; const t=cur.step.target, m=G.m;
+  resetPick(); const hand=m.hand.p;
+  if(t.bar){
+    dispatch('bar',{k:t.bar});
+    if(t.bar==='KELMA') dispatch('kv',{v:String(t.kv)});
+    if(t.bar==='CHERGUI') dispatch('cs',{src:t.src});
+  }
+  let card=hand.find(c=>c.v===t.v);
+  if(!card) return false;
+  dispatch('pick',{id:String(card.id)});
+  if(t.bar==='AOUD') { /* la jumelle est choisie automatiquement par l'action pick */ }
+  if(t.esc) { if(!G.escalate) dispatch('esc',{}); }
+  dispatch('play',{z:t.zone});
+  return true;
+}
+
+// ---- Vues du parcours
+function wtLessonsCount(L){ return L.length; }
+function wtProgress(){ const w=G.wt; return Math.round(100*w.i/w.flat.length); }
+function wtAskSheet(){
+  const o=wtOpts(), L=wtLessons(o), F=wtFlat(L), n=L.length, min=Math.max(4,Math.round(F.length*0.45));
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Parcours guidé"><div class="sheet-in">
+    <h2>Avant de partir : le parcours guidé</h2>
+    <p>${n} leçons, environ ${min} minutes. Vous jouez chaque règle sur un vrai plateau, avec le vrai moteur du jeu. Le parcours est adapté à votre voyage : ${o.mods.ech?'<b>Échanges</b>, ':''}${o.mods.bar?'<b>Baroud</b>, ':''}le deck <b>${esc(STARTERS[o.starter].name)}</b>, le mode <b>${esc(MODES[o.mode].name)}</b>.</p>
+    <p class="faint">Vous pourrez le rejouer à tout moment depuis l\u2019accueil.</p>
+    <button type="button" class="primary" data-act="wtstart">Commencer le parcours guidé</button>
+    <button type="button" class="ghost" data-act="wtskip">Partir directement</button>
+    <button type="button" class="link" data-act="wtnever">Partir directement, et ne plus me le proposer</button></div></div>`;
+}
+function wtCoach(){
+  const w=G.wt, cur=wtCurrent(), idx=cur.li+1, tot=new Set(w.flat.map(x=>x.li)).size;
+  const head=`<div class="coach-top"><span class="crumb">Parcours guidé · leçon ${idx}/${tot} · ${esc(cur.lesson.title)}</span>${cur.total>1?`<span class="coach-n">étape ${cur.n+1}/${cur.total}</span>`:''}</div><div class="coach-bar"><i style="width:${wtProgress()}%"></i></div>`;
+  let body;
+  if(w.phase==='play') body=`<p class="coach-goal">${cur.step.goal}</p><div class="coach-actions"><button type="button" class="ghost sm" data-act="wtshow">Montrez-moi</button><button type="button" class="link" data-act="wtskiplesson">Passer cette leçon</button></div>`;
+  else if(w.phase==='done') body=`<p class="coach-ok">Bien joué.</p><p>${cur.step.explain}</p><button type="button" class="primary" data-act="wtnext">${w.i>=w.flat.length-1?'Terminer et partir en voyage':'Continuer'}</button>`;
+  else body=`<p class="coach-retry">${esc(w.msg||'')}</p><p class="coach-goal">${cur.step.goal}</p><button type="button" class="primary" data-act="wtnext">Réessayer</button>`;
+  return `<section class="coach ph-${w.phase}" role="region" aria-label="Parcours guidé" aria-live="polite">${head}${body}</section>`;
+}
+function viewTuto(){
+  const w=G.wt, cur=wtCurrent(); if(!cur) return '';
+  if(cur.info){
+    const tot=new Set(w.flat.map(x=>x.li)).size, last=w.i>=w.flat.length-1;
+    return `<main class="tuto-page"><p class="crumb">Parcours guidé · leçon ${cur.li+1}/${tot}</p><div class="coach-bar"><i style="width:${wtProgress()}%"></i></div>
+      <h1>${esc(cur.lesson.title)}</h1><p class="lede">${cur.lesson.text}</p>
+      <button type="button" class="primary" data-act="wtnext">${last?'Terminer et partir en voyage':'Continuer'}</button>
+      <button type="button" class="link" data-act="wtskiplesson">Passer cette leçon</button> <button type="button" class="ghost sm" data-act="wtquit">Quitter le parcours</button></main>`;
+  }
+  let gv=viewGame(); if(w.phase!=='play') gv=gv.replace(/<section class="actions">[\s\S]*?<\/section>/,'').replace(/<p class="faint">Choisissez une carte[^<]*<\/p>/,'');
+  return gv.replace('<main class="game','<main class="wtboard game').replace('<header class="top">',wtCoach()+'<header class="top">');
+}
+VIEWS.tuto=viewTuto;
+Object.assign(ACT,{
+  wtask:()=>{ G.sheet='wtask'; },
+  wtstart:()=>{ wtStart(); },
+  wtskip:()=>{ G.sheet=null; ACT.realstart(); },
+  wtnever:()=>{ G.settings.wtDone=true; G.sheet=null; persist(); ACT.realstart(); },
+  wtnext:()=>{ wtNext(); },
+  wtskiplesson:()=>{ wtSkipLesson(); },
+  wtquit:()=>{ wtQuit(); },
+  wtshow:()=>{ wtSolve(); },
+});
+
 </script>
 </body>
 </html>
