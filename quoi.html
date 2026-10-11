@@ -360,10 +360,10 @@ const NEXT={1:2,2:3,3:4,4:5,5:6,6:7,7:10,10:11,11:12,12:null};
 const SUITS=['B','C','E','D'];
 // Types de cartes : chaque couleur espagnole porte un effet, choisi à la construction du deck ; une carte ordinaire est « neutre » (couleur 'N')
 const FX={
-  oros:{name:'Oros',suit:'D',role:'Doré',text:'Compte double dans votre pile.'},
-  copas:{name:'Copas',suit:'C',role:'Cris',text:'Une Ronda ou une Tringa qui l\u2019utilise rapporte 1 point de plus, hors plafond.'},
-  espadas:{name:'Espadas',suit:'E',role:'Tranchant',text:'Sans carte identique sur le plateau, elle capture la valeur voisine (au-dessus, sinon en dessous).'},
-  bastos:{name:'Bastos',suit:'B',role:'Garde',text:'Posée en Médina, le rival ne peut pas la prendre.'},
+  oros:{name:'Dehab',suit:'D',role:'Doré',text:'Compte double dans votre pile.'},
+  copas:{name:'Tbayeq',suit:'C',role:'Cris',text:'Une Ronda ou une Tringa qui l\u2019utilise rapporte 1 point de plus, hors plafond.'},
+  espadas:{name:'Seyouf',suit:'E',role:'Tranchant',text:'Sans carte identique sur le plateau, elle capture la valeur voisine (au-dessus, sinon en dessous).'},
+  bastos:{name:'Zrawt',suit:'B',role:'Garde',text:'Posée en Médina, le rival ne peut pas la prendre.'},
 };
 const FX_ORDER=['oros','copas','espadas','bastos'];
 const FX_PRICE={oros:4,copas:4,espadas:6,bastos:3};
@@ -438,7 +438,7 @@ const CORPS={
   dabbagh:{name:'Le Dabbagh',role:'tanneur',text:'Ce que vous capturez en Médina rejoint votre pile au lieu de sortir du jeu.'},
   nejjar:{name:'Le Nejjar',role:'menuisier',text:'Chaque capture d\u2019au moins 3 cartes au Souk compte deux cartes de plus dans votre pile.'},
   zelligeur:{name:'Le Zelligeur',role:'mosaïste',text:'Si l\u2019une de vos bases est encore posée en Médina à la fin de la manche, elle rapporte 1 point.'},
-  fakhkhar:{name:'Le Fakhkhar',role:'potier',text:'Vos cartes Oros comptent triple dans votre pile, au lieu de double.'},
+  fakhkhar:{name:'Le Fakhkhar',role:'potier',text:'Vos cartes Dehab comptent triple dans votre pile, au lieu de double.'},
   garrab:{name:'Le Garrab',role:'porteur d\u2019eau',text:'Chaque souk gagné vous rapporte 2 sel de plus.'},
 };
 
@@ -451,7 +451,7 @@ const PREV=Object.fromEntries(Object.entries(NEXT).filter(([k,x])=>x!=null).map(
 function captureSet(zone,v,o){
   const vis=zone.filter(c=>!(o.forRival && c.sealed && c.owner==='p'));
   let eq=vis.filter(c=>c.v===v);
-  // Espadas : sans carte identique, la carte capture la valeur voisine (au-dessus, sinon en dessous), puis la chaîne continue
+  // Seyouf : sans carte identique, la carte capture la valeur voisine (au-dessus, sinon en dessous), puis la chaîne continue
   if(!eq.length&&o.reach){ for(const nv of [NEXT[v],PREV[v]]){ if(nv!=null){ const t=vis.filter(c=>c.v===nv); if(t.length){ eq=t; v=nv; break; } } } }
   if(!eq.length) return [];
   let cap=[...eq],cur=v,steps=0,bridged=false;
@@ -479,7 +479,7 @@ function resolveMove(st,side,card,zone){
       const pairIds=st.parked[side][card.v].map(c=>c.id), gone=[], copasT=card.fx==='copas'||st.parked[side][card.v].some(c=>c.fx==='copas');
       Z.filter(c=>c.v===card.v && !(o.forRival&&c.sealed&&c.owner==='p')).forEach(c=>{gone.push(c.id); remove(Z,c); if(cp(st,side,'dabbagh')) st.piles[side].push(c); else st.out++;});
       delete st.parked[side][card.v]; st.out+=3; lg(st,side,[card]);
-      const g=ann(st,side,3,'Tringa : trio en Médina'); if(copasT&&g>0){ addPts(st,side,1,'Copas (Tringa)'); st.corpPts[side]+=1; } ev.push({side,kind:'tringa',v:card.v,pts:g,ids:[...pairIds,...gone,card.id],played:card.id,to:'out'}); return ev;
+      const g=ann(st,side,3,'Tringa : trio en Médina'); if(copasT&&g>0){ addPts(st,side,1,'Tbayeq (Tringa)'); st.corpPts[side]+=1; } ev.push({side,kind:'tringa',v:card.v,pts:g,ids:[...pairIds,...gone,card.id],played:card.id,to:'out'}); return ev;
     }
     const cap=captureSet(Z,card.v,o);
     if(!cap.length){card.owner=side; Z.push(card); ev.push({side,kind:'pose',zone,played:card.id}); return ev;}
@@ -490,7 +490,7 @@ function resolveMove(st,side,card,zone){
       st.parked[side][card.v]=[mine[0],card];
       const rest=cap.filter(c=>c!==mine[0]); if(cp(st,side,'dabbagh')) st.piles[side].push(...rest); else rest.forEach(()=>st.out++);
       const g=ann(st,side,2,'Ronda : paire garée en Médina'); if(cp(st,side,'ballaghi')&&g>0&&st.annM[side]===2){ addPts(st,side,1,'Ballaghi (1re Ronda)'); st.corpPts[side]+=1; }
-      if((card.fx==='copas'||mine[0].fx==='copas')&&g>0){ addPts(st,side,1,'Copas (Ronda)'); st.corpPts[side]+=1; }
+      if((card.fx==='copas'||mine[0].fx==='copas')&&g>0){ addPts(st,side,1,'Tbayeq (Ronda)'); st.corpPts[side]+=1; }
       ev.push({side,kind:'ronda',v:card.v,pts:g,denied,ids:[...cap.map(c=>c.id),card.id],played:card.id,park:[mine[0].id,card.id],to:'park'});
     } else if(cp(st,side,'dabbagh')){ st.piles[side].push(...cap,card); ev.push({side,kind:'captureM',n:cap.length,denied,kept:true,ids:[...cap.map(c=>c.id),card.id],played:card.id,to:'pile'}); }
     else { st.out+=cap.length+1; ev.push({side,kind:'captureM',n:cap.length,denied,ids:[...cap.map(c=>c.id),card.id],played:card.id,to:'out'}); }
@@ -1565,7 +1565,7 @@ const TUTO=[
    v:()=>`<div class="tv chain">${cardHTML({v:4,s:'B'},{small:true,owner:'p'})}<span>+</span>${cardHTML({v:4,s:'C'},{small:true})}<span>=</span><b class="big">Ronda +2</b></div>`},
   {t:'L\u2019aperçu ne ment pas',d:'Touchez une carte : chaque zone affiche le résultat exact. Si votre carte égale celle du rival dans la même zone, une pièce décide qui résout d\u2019abord, et l\u2019aperçu montre les deux issues.',
    v:()=>`<div class="tv chain"><span class="coinmock">Face</span><b class="big">ou</b><span class="coinmock riv">Pile</span></div>`},
-  {t:'Quatre types de cartes',d:'Au marché, consacrez une carte à un type : Oros compte double dans la pile, Copas rapporte un point de plus sur une Ronda ou une Tringa, Espadas capture la valeur voisine, Bastos protège une base en Médina. Les autres cartes restent neutres.',
+  {t:'Quatre types de cartes',d:'Au marché, consacrez une carte à un type : Dehab compte double dans la pile, Tbayeq rapporte un point de plus sur une Ronda ou une Tringa, Seyouf capture la valeur voisine, Zrawt protège une base en Médina. Les autres cartes restent neutres.',
    v:()=>`<div class="tv">${FX_ORDER.map(k=>cardHTML({v:{oros:5,copas:4,espadas:7,bastos:3}[k],fx:k},{small:true})).join('')}</div>`},
   {t:'Le voyage',d:'Quatre villes, seize épreuves, un maître au bout de chaque ville. Entre deux souks, le marché : corporations, mèches, cartes nouvelles. Perdre coûte une baraka, ou le voyage selon le mode.',
    v:()=>`<div class="route">${CITIES.map((c,i)=>`<span class="cdot ${i===0?'cur':''}"><i></i><em>${esc(c.name)}</em></span>`).join('')}</div>`},
@@ -1821,11 +1821,14 @@ function wtLessons(o){
      expect:(m)=>m.piles.p.length===0&&m.zones.M.length===0&&m.out>=2}]});
   L.push({id:'ronda',title:'La Ronda : une paire en Médina',steps:[
     {goal:'Touchez le <b>6</b>, puis la <b>Médina</b> : c\u2019est votre base.',target:{v:6,zone:'M'},
-     board:{hand:[6,6,11],M:[],intent:{v:12,zone:'S'}},
-     explain:'Posée sans rien capturer, votre carte devient une <b>base</b>. Si le rival la prenait, vous perdriez la Ronda en préparation.',
+     board:{hand:[6,6,3,11],M:[],intent:{v:12,zone:'S'}},
+     explain:'Posée sans rien capturer, votre carte devient une <b>base</b>. Pour faire la Ronda, il vous faudra jouer une seconde carte de même valeur : mais pas forcément tout de suite.',
      expect:(m)=>m.zones.M.length===1&&m.zones.M[0].owner==='p'},
+    {goal:'Touchez le <b>3</b>, puis le <b>Souk</b> : vous gardez votre seconde 6 pour plus tard.',target:{v:3,zone:'S'},prep:{intent:{v:10,zone:'S'}},
+     explain:'Votre base attend en Médina, et c\u2019est permis : la seconde carte de la Ronda <b>peut ne pas être jouée au tour suivant</b>. <b>N\u2019importe quel tour ultérieur de la manche convient</b>, y compris le dernier. Le seul risque : tant que la base est seule, le rival peut la capturer (le déni) et vous perdez la Ronda.',
+     expect:(m)=>m.zones.M.some(c=>c.owner==='p'&&c.v===6)&&m.annM.p===0&&m.hand.p.some(c=>c.v===6)},
     {goal:'Touchez le <b>second 6</b>, puis la <b>Médina</b>.',target:{v:6,zone:'M'},prep:{intent:{v:11,zone:'S'}},
-     explain:'Votre seconde carte capture <b>votre propre base</b> : <b>Ronda, +2 points</b>. La paire se gare au <b>coin Ronda</b>. Un troisième 6 plus tard fera une Tringa.',
+     explain:'Votre seconde carte capture <b>votre propre base</b> : <b>Ronda, +2 points</b>. La paire se gare au <b>coin Ronda</b>. Vous auriez pu attendre encore : seule la fin de la manche est une limite. Un troisième 6, plus tard, fera une Tringa.',
      expect:(m)=>m.annM.p===2&&!!m.parked.p[6]}]});
   L.push({id:'tringa',title:'La Tringa et le plafond',steps:[
     {goal:'Touchez le <b>4</b>, puis la <b>Médina</b>.',target:{v:4,zone:'M'},
@@ -1844,28 +1847,28 @@ function wtLessons(o){
      expect:(m)=>m.piles.p.length===2}]});
   L.push({id:'moul',title:'Fin de manche : le Moul Souk',steps:[
     {goal:'Dernier tour : touchez le <b>3</b>, puis le <b>Souk</b>.',target:{v:3,zone:'S'},
-     board:{turn:T,hand:[3],S:[11],pile:[6,4],intent:{v:12,zone:'M'}},
-     explain:`Après le dernier tour, la <b>plus grosse pile</b> gagne le <b>Moul Souk, +${MOUL}</b> : ici 6 cartes contre 4. À égalité, personne. Le bouton <b>Journal</b> détaille tous vos points, tour par tour.`,
-     expect:(m)=>m.over&&m.moul==='p'&&m.score.p-(m.mods.bar?POWDER:0)===MOUL}]});
+     board:{turn:T,hand:[3,2,11],S:[11],pile:[6,4],intent:{v:12,zone:'M'}},
+     explain:`Après le dernier tour, la <b>plus grosse pile</b> gagne le <b>Moul Souk, +${MOUL}</b> : ici 6 cartes contre 4. À égalité, personne. Le bouton <b>Journal</b> détaille tous vos points, tour par tour.<br><br>Regardez votre main : <b>il vous reste deux cartes</b>, et c\u2019est normal. Une manche utilise 10 cartes (4 au départ, puis 2 aux tours 3, 5 et 7) mais ne dure que 8 tours : deux cartes ne sont jamais jouées. Vous n\u2019avez pas à tout jouer, et choisir lesquelles garder fait partie du jeu.`,
+     expect:(m)=>m.over&&m.moul==='p'&&m.score.p-(m.mods.bar?POWDER:0)===MOUL&&m.hand.p.length===2}]});
   L.push({id:'caravan',title:'La caravane',info:true,
-    text:`Vous commencez chaque manche avec <b>4 cartes</b>. Aux tours <b>3, 5 et 7</b>, la caravane en apporte <b>2 de plus</b> ; elle montre à l\u2019avance les cartes que vous recevrez au prochain tour. Une manche utilise 10 cartes : si votre deck en compte davantage, le surplus attend en <b>Réserve</b>.`});
+    text:`Vous commencez chaque manche avec <b>4 cartes</b>. Aux tours <b>3, 5 et 7</b>, la caravane en apporte <b>2 de plus</b> ; elle montre à l\u2019avance les cartes que vous recevrez au prochain tour. Une manche utilise 10 cartes : si votre deck en compte davantage, le surplus attend en <b>Réserve</b>.<br><br>Comme une manche ne dure que <b>8 tours</b>, <b>deux de ces 10 cartes ne sont jamais jouées : elles restent en main à la fin de la manche</b>. Ce n\u2019est pas un oubli : vous n\u2019avez pas à tout jouer, et c\u2019est à vous de choisir lesquelles garder. Avec un deck de 10 cartes ou plus (c\u2019est le cas des trois decks de départ), il en reste deux ; un deck de 8 cartes les joue toutes.`});
   // types de cartes
   L.push({id:'fx',title:'Les quatre types de cartes',steps:[
-    {goal:'<b>Oros</b> : touchez le <b>5</b> doré, puis le <b>Souk</b>.',target:{v:5,zone:'S'},
+    {goal:'<b>Dehab</b> : touchez le <b>5</b> doré, puis le <b>Souk</b>.',target:{v:5,zone:'S'},
      board:{hand:[{v:5,fx:'oros'},2,11],S:[5,12],intent:{v:3,zone:'M'}},
-     explain:'Un <b>Oros</b> compte <b>double</b> dans votre pile : deux cartes, valeur 3.',
+     explain:'Un <b>Dehab</b> compte <b>double</b> dans votre pile : deux cartes, valeur 3.',
      expect:(m)=>m.piles.p.length===2&&pileValue(m,'p')===3},
-    {goal:'<b>Copas</b> : touchez le <b>4</b> Copas, puis la <b>Médina</b>.',target:{v:4,zone:'M'},
+    {goal:'<b>Tbayeq</b> : touchez le <b>4</b> Tbayeq, puis la <b>Médina</b>.',target:{v:4,zone:'M'},
      board:{hand:[{v:4,fx:'copas'},2,11],M:[{v:4,own:'p'}],intent:{v:12,zone:'S'}},
-     explain:'Une Ronda ou une Tringa qui utilise une carte <b>Copas</b> rapporte <b>1 point de plus</b>, hors plafond : Ronda 2 + 1 = 3 points.',
+     explain:'Une Ronda ou une Tringa qui utilise une carte <b>Tbayeq</b> rapporte <b>1 point de plus</b>, hors plafond : Ronda 2 + 1 = 3 points.',
      expect:(m)=>m.score.p-(m.mods.bar?POWDER:0)===3},
-    {goal:'<b>Espadas</b> : touchez le <b>5</b> Espadas, puis le <b>Souk</b>.',target:{v:5,zone:'S'},
+    {goal:'<b>Seyouf</b> : touchez le <b>5</b> Seyouf, puis le <b>Souk</b>.',target:{v:5,zone:'S'},
      board:{hand:[{v:5,fx:'espadas'},2,11],S:[6,12],intent:{v:3,zone:'M'}},
-     explain:'Sans carte identique sur le plateau, une carte <b>Espadas</b> capture la <b>valeur voisine</b> : ici le 6 (au-dessus d\u2019abord, sinon en dessous).',
+     explain:'Sans carte identique sur le plateau, une carte <b>Seyouf</b> capture la <b>valeur voisine</b> : ici le 6 (au-dessus d\u2019abord, sinon en dessous).',
      expect:(m)=>m.piles.p.length===2},
-    {goal:'<b>Bastos</b> : touchez le <b>12</b>, puis le <b>Souk</b>, et regardez le rival.',target:{v:12,zone:'S'},
+    {goal:'<b>Zrawt</b> : touchez le <b>12</b>, puis le <b>Souk</b>, et regardez le rival.',target:{v:12,zone:'S'},
      board:{hand:[12,2,11],M:[{v:5,own:'p',fx:'bastos'}],intent:{v:5,zone:'M'}},
-     explain:'Le rival jouait un 5 en Médina pour prendre votre base. Mais votre 5 est <b>Bastos</b> : il ne peut pas être pris. Son 5 se pose, et votre base est intacte.',
+     explain:'Le rival jouait un 5 en Médina pour prendre votre base. Mais votre 5 est <b>Zrawt</b> : il ne peut pas être pris. Son 5 se pose, et votre base est intacte.',
      expect:(m)=>m.zones.M.some(c=>c.owner==='p'&&c.fx==='bastos')&&m.out===0}]});
   if(st.corps&&st.corps.includes('haddad')){
     L.push({id:'corp',title:'Votre corporation : Le Haddad',steps:[
@@ -1881,7 +1884,7 @@ function wtLessons(o){
     L.push({id:'exch',title:'Module Échanges',steps:[
       {goal:'Touchez le <b>5</b>, activez <b>Escalader si possible</b>, puis la <b>Médina</b>.',target:{v:5,zone:'M',esc:true},
        board:{hand:[5,5,11],M:[],intent:{v:5,zone:'M'},coin:'p',reserve:[2]},
-       explain:'Même rang en Médina, et la carte du premier reste libre : un <b>échange</b> s\u2019ouvre. Le second annonce <b>Bouahd (+1)</b>. Le premier peut répondre <b>Btlata (+3)</b> en abattant un troisième exemplaire de sa main : seul le <b>dernier mot</b> compte. Ici vous marquez +3.',
+       explain:'Même rang en Médina, et la carte du premier reste libre : un <b>échange</b> s\u2019ouvre. Le second annonce <b>Bouahd (+1)</b>. Le premier peut répondre <b>Btlata (+3)</b> en abattant un troisième exemplaire de sa main : seul le <b>dernier mot</b> compte. Ici vous marquez +3. C\u2019est à cela que servent, entre autres, les deux cartes qui restent en main en fin de manche : ce sont vos <b>munitions d\u2019escalade</b>.',
        expect:(m)=>m.xp.p===3},
       {goal:'Touchez le <b>5</b>, puis la <b>Médina</b>, <b>sans escalader</b>.',target:{v:5,zone:'M',esc:false},
        board:{hand:[5,5,11],M:[],intent:{v:5,zone:'M'},coin:'p',reserve:[2]},
@@ -2036,6 +2039,7 @@ function viewTuto(){
       <button type="button" class="link" data-act="wtskiplesson">Passer cette leçon</button> <button type="button" class="ghost sm" data-act="wtquit">Quitter le parcours</button></main>`;
   }
   let gv=viewGame(); if(w.phase!=='play') gv=gv.replace(/<section class="actions">[\s\S]*?<\/section>/,'').replace(/<p class="faint">Choisissez une carte[^<]*<\/p>/,'');
+  if(G.m&&G.m.over) gv=gv.replace(/<section class="intent"[\s\S]*?<\/section>/,'<section class="intent" aria-label="Manche terminée"><div class="intent-txt"><span class="lab">Manche terminée</span><span class="where">Le décompte est fait</span></div></section>');
   return gv.replace('<main class="game','<main class="wtboard game').replace('<header class="top">',wtCoach()+'<header class="top">');
 }
 VIEWS.tuto=viewTuto;
